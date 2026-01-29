@@ -1,0 +1,25 @@
+/* Works on Chrome, Edge, and Safari */
+.dropdown-location::-webkit-scrollbar {
+  width: 7px;
+  height: 200px;
+}
+
+.dropdown-location::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-location::-webkit-scrollbar-thumb {
+  background-color: rgb(201, 188, 188);
+  border-radius: 10px;
+}
+.brows-category:hover .brows-category-list {
+  display: block;
+}
+.category-inner{
+  z-index: 999 !important;
+}
+/* @media (max-width: 1380px) {
+  .first-nav-container {
+     flex-wrap: wrap;
+  }
+}  */

@@ -1,0 +1,157 @@
+/* =========================
+   HERO WRAPPER (padding outside)
+========================= */
+.hero-wrap {
+  width: 100%;
+}
+
+/* =========================
+   HERO CONTAINER
+========================= */
+.hero-full {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+
+  /* ✅ smooth responsive height */
+  height: clamp(220px, 32vw, 450px);
+
+  /* optional */
+  border-radius: 14px;
+
+  transition: height 0.3s ease;
+}
+
+/* =========================
+   SLICK INTERNAL HEIGHT FIX
+========================= */
+.hero-full .slick-slider,
+.hero-full .slick-list,
+.hero-full .slick-track {
+  height: 100%;
+}
+
+/* slick slider also relative so arrows position correctly */
+.hero-full .slick-slider {
+  position: relative;
+}
+
+.hero-full .slick-slide > div {
+  height: 100%;
+}
+
+/* =========================
+   SLIDE + LINK FULL HEIGHT
+========================= */
+.hero-slide {
+  position: relative;
+  height: 100%;
+}
+
+.hero-slide a {
+  display: block;
+  height: 100%;
+}
+
+/* =========================
+   IMAGE
+========================= */
+.hero-img {
+  width: 100%;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: center bottom; /* ✅ bottom part visible more */
+  display: block;
+}
+
+/* =========================
+   DOTS
+========================= */
+.hero-full .slick-dots {
+  bottom: 16px;
+}
+
+.hero-full .slick-dots li button:before {
+  font-size: 9px;
+  opacity: 0.5;
+  color: #ffffff;
+}
+
+.hero-full .slick-dots li.slick-active button:before {
+  opacity: 1;
+  color: #ffffff;
+}
+
+/* =========================
+   CUSTOM ARROWS
+========================= */
+.hero-arrow {
+  position: absolute;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 50 !important;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.3);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.hero-arrow:hover {
+  background: rgba(0, 0, 0, 0.5);
+  transform: translateY(-50%) scale(1.05) !important;
+}
+
+.hero-arrow--prev {
+  left: 16px;
+}
+
+.hero-arrow--next {
+  right: 16px;
+}
+
+/* =========================
+   IF SLICK DEFAULT ARROWS CONFLICT (safe)
+========================= */
+.hero-full .slick-prev,
+.hero-full .slick-next {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 50 !important;
+}
+
+/* =========================
+   MOBILE TWEAKS
+========================= */
+@media (max-width: 768px) {
+  .hero-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .hero-arrow--prev {
+    left: 10px;
+  }
+
+  .hero-arrow--next {
+    right: 10px;
+  }
+
+  .hero-full .slick-dots {
+    bottom: 10px;
+  }
+}
+ 

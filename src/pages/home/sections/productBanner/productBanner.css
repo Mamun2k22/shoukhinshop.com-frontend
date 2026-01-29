@@ -1,0 +1,3 @@
+.banner-items .banner-item:hover > img {
+    transform: scale(1.1);
+  }

@@ -1,0 +1,259 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Questrial&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.swiper-button-next,
+.swiper-button-prev {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 16px;
+  color: black;
+}
+
+
+/* no-scrollbar.css */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-quill .ql-editor {
+  min-height: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ---------- Pretty vertical scrollbar (light + dark) ---------- */
+@layer utilities {
+  :root {
+    --sb-size: 8px;
+    --sb-radius: 9999px;
+    --sb-thumb: #c7d2fe;         /* indigo-200 */
+    --sb-thumb-hover: #a5b4fc;   /* indigo-300 */
+    --sb-thumb-active: #818cf8;  /* indigo-400 */
+    --sb-track: transparent;
+  }
+
+  .nice-scrollbar {
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--sb-thumb-hover) var(--sb-track);
+    /* Smoothness + layout stability */
+    scrollbar-gutter: stable both-edges;
+    overscroll-behavior: contain;
+  }
+
+  /* WebKit (Chrome/Edge/Safari) */
+  .nice-scrollbar::-webkit-scrollbar {
+    width: var(--sb-size);
+  }
+  .nice-scrollbar::-webkit-scrollbar-track {
+    background: var(--sb-track);
+  }
+  .nice-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--sb-thumb), #e9d5ff); /* indigo→violet */
+    border-radius: var(--sb-radius);
+    border: 2px solid transparent;           /* makes it slim & glossy */
+    background-clip: padding-box;
+  }
+  .nice-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--sb-thumb-hover), #c4b5fd);
+  }
+  .nice-scrollbar::-webkit-scrollbar-thumb:active {
+    background: var(--sb-thumb-active);
+  }
+  /* Optional: a tad thicker on hover for easier grab */
+  .nice-scrollbar:hover::-webkit-scrollbar { width: 10px; }
+
+  /* Subtle fade mask (top/bottom) so edges look clean while scrolling */
+  .scroll-fade-mask {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent, black 12px,
+      black calc(100% - 12px), transparent
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent, black 12px,
+      black calc(100% - 12px), transparent
+    );
+  }
+
+  /* Dark theme variant (if you use .dark on <html> or <body>) */
+  .dark .nice-scrollbar {
+    scrollbar-color: #94a3b8 transparent; /* slate-400 */
+  }
+  .dark .nice-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #94a3b8, #64748b); /* slate-400→slate-500 */
+    border-color: transparent;
+  }
+  .dark .nice-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8); /* slate-300→slate-400 */
+  }
+  .dark .nice-scrollbar::-webkit-scrollbar-thumb:active {
+    background: #64748b;
+  }
+
+  
+}
+
+/* html, body {
+  overflow-x: hidden;
+} */
+
+
+/* @keyframes rotate-circle {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spin-text {
+  animation: rotate-circle 12s linear infinite;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+} */
+
+/* Continuous marquee (no gap, no scrollbar) */
+.marquee-track {
+  width: max-content;
+  animation-name: marquee-left;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+/* hover করলে marquee pause হবে */
+.group:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-group {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+/* এই div এর padding ই তোমার "এখান থেকে এতটুকু" safe area */
+.topbar-marquee{
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-left: 56px;   /* <-- icon এর পরে যতটা gap দরকার */
+  padding-right: 24px;  /* <-- right side safe */
+  box-sizing: border-box;
+}
+
+/* text */
+.topbar-text{
+  display:inline-block;
+  will-change: transform, opacity;
+}
+
+/* PowerPoint-like jump in from right then go left */
+.ppt-jump-in{
+  animation: jumpInOut 4s infinite;
+}
+
+@keyframes jumpInOut{
+  0%   { transform: translateX(110%); opacity:0; }
+  8%   { transform: translateX(110%); opacity:0; }
+  9%   { transform: translateX(0%);   opacity:1; }
+  75%  { transform: translateX(0%);   opacity:1; }
+  100% { transform: translateX(-130%);opacity:0; }
+}
+@keyframes subtitleSlideFade {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+.animate-subtitle {
+  animation: subtitleSlideFade 2.5s ease-in-out;
+}
+
+
+
+@keyframes exitLeftOnly {
+  0%   { transform: translateX(0); opacity: 1; }
+  80%  { transform: translateX(0); opacity: 1; }   /* বেশিরভাগ সময় স্থির থাকবে */
+  100% { transform: translateX(-120%); opacity: 1; } /* শেষে শুধু বামে বের হবে */
+}
+
+.subtitle-exit-left {
+  display: block;
+  white-space: nowrap;
+  animation: exitLeftOnly 2.5s linear;
+}
+
+
+
+
+/* approch */
+/* আপনার global.css বা main.css ফাইলে যোগ করুন */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+  width: max-content;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

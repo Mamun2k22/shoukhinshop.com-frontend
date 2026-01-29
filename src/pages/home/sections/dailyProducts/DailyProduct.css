@@ -1,0 +1,48 @@
+[title]::after {
+    content: '';
+    position: absolute;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, top 0.3s ease-in-out;
+    pointer-events: none;
+    top: -30px; /* Start position above the hover state */
+}
+
+[title]:hover::after {
+    content: attr(title);
+    background: #3bb77e;
+    border-radius: .3ch;
+    box-shadow: 0 1em 2em -.5em #00000059;
+    color: #fff;
+    max-width: 122px;
+    overflow: hidden;
+    padding: 3px 5px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 1000;
+    position: absolute;
+    top: -24px; /* Hover position */
+    opacity: 1;
+    left: -10px;
+    font-size: 13px;
+}
+.products-item:hover {
+    box-shadow: 0 3px 6px #00000029,0 3px 6px #0000003b;
+}
+.products-item:hover .overlay-item  {
+    opacity: 1;
+    transform: scale(1);
+}
+.products-item:hover img {
+    transform: scale(1.1);
+}
+.overlay-item ul li a:hover svg{
+fill: black;
+}
+.popular-product-btn:hover svg,
+.popular-product-btn:hover span{
+    fill: white;
+    color: white;
+}
+ 
+ 

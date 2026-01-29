@@ -1,0 +1,64 @@
+.popular-product [title]::after {
+  content: "";
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, top 0.3s ease-in-out;
+  pointer-events: none;
+  top: -30px; /* Start position above the hover state */
+}
+
+.popular-product [title]:hover::after {
+  content: attr(title);
+  background: #3bb77e;
+  border-radius: 0.3ch;
+  box-shadow: 0 1em 2em -0.5em #00000059;
+  color: #fff;
+  max-width: 122px;
+  overflow: hidden;
+  padding: 3px 5px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 1000;
+  position: absolute;
+  top: -24px; /* Hover position */
+  opacity: 1;
+  left: -10px;
+  font-size: 13px;
+}
+.popular-product .products-item:hover {
+  box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b;
+}
+.popular-product .products-item:hover .overlay-item {
+  opacity: 1;
+  transform: scale(1);
+}
+.popular-product .products-item:hover img {
+  transform: scale(1.1);
+}
+.popular-product .overlay-item ul li a:hover svg {
+  fill: black;
+}
+.popular-product .popular-product-btn:hover svg,
+.popular-product .popular-product-btn:hover span {
+  fill: white;
+  color: white;
+}
+
+
+/* Custom popup height */
+.custom-swal-popup {
+  height: 370px; /* Set your desired height */
+  max-height: 500px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* Custom size for SweetAlert2 icons */
+.small-icon .swal2-icon {
+  margin-top: 0px;
+  padding-top: 0px;
+  width: 20px; /* Set the width of the icon */
+  height: 20px; /* Set the height of the icon */
+  font-size: 20px; /* Adjust the icon's font size (optional) */
+}

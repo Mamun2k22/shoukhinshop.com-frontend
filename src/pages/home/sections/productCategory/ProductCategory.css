@@ -1,0 +1,23 @@
+.product-category a .product-item {
+  transition: all 0.3s ease-in-out !important;
+}
+.product-category a:first-child .product-item {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b !important;
+}
+
+.product-category a:not(:nth-child(0)):hover .product-item {
+  box-shadow: 0 3px 6px #00000029, 0 3px 6px #0000003b !important;
+  transform: scale(1.1);
+}
+
+/* Custom style for pagination to lower it */
+.custom-swiper .swiper-pagination {
+  margin-top: 20px; /* Adjust this to lower pagination */
+  position: relative; /* Make it relative to adjust its position */
+}
+
+/* If the pagination needs more precise control */
+.custom-swiper .swiper-pagination-bullets {
+  margin-top: 3px; /* Increase this value to move the pagination lower */
+}
