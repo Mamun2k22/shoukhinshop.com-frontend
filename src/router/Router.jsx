@@ -18,7 +18,7 @@ import Category from "../components/Category";
 
 import Checkout from "../pages/checkOut/Checkout";
 import CheckoutTwo from "../pages/checkOut/CheckoutTwo";
-import Otp from "../components/OTP";
+import Otp from "../components/Otp";
 import { AdminRoute } from "../hooks/useAdmin";
 import { Test } from "../components/Test";
 import Buynow from "../components/Buynow"
