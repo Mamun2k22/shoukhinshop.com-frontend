@@ -24,7 +24,7 @@ export default function Footer() {
 
 
   return (
-    <footer className="bg-gradient-to-r from-[#4b0c23] to-[#45106e]
+    <footer className="bg-gradient-to-r from-[#72072f] to-[#ab1010]
  text-gray-300 py-12 font-manrope mt-6">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
         {/* LEFT column */}

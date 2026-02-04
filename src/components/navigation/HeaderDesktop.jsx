@@ -1,46 +1,14 @@
 // components/navigation/HeaderDesktop.jsx
 import React, { useEffect, useRef, useState, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiSearch, FiUser, FiHeart, FiShoppingBag } from "react-icons/fi";
+import { FiSearch, FiUser, FiHeart, FiShoppingBag, FiChevronDown } from "react-icons/fi";
 import settingsApi, {
   fetchPublicSettings,
   fetchPublicHeaderSettings,
 } from "../../hooks/settingsApi.jsx";
 
-// fa6 icons
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaWhatsapp,
-  FaThreads,
-  FaYoutube,
-  FaTwitter,
-  FaLinkedinIn,
-  FaTiktok,
-  FaPinterestP,
-  FaRedditAlien,
-  FaGithub,
-} from "react-icons/fa6";
 
-// telegram + snapchat fa থেকে
-import { FaTelegramPlane, FaSnapchatGhost } from "react-icons/fa";
 
-// 🔹 social key -> icon map (backend er key er sathe match)
-const SOCIAL_ICON_MAP = {
-  facebook: FaFacebookF,
-  instagram: FaInstagram,
-  whatsapp: FaWhatsapp,
-  threads: FaThreads,
-  youtube: FaYoutube,
-  twitter: FaTwitter,
-  linkedin: FaLinkedinIn,
-  tiktok: FaTiktok,
-  pinterest: FaPinterestP,
-  telegram: FaTelegramPlane,
-  snapchat: FaSnapchatGhost,
-  reddit: FaRedditAlien,
-  github: FaGithub,
-};
 
 const HeaderDesktop = ({
   logo,
@@ -54,24 +22,26 @@ const HeaderDesktop = ({
 }) => {
   const navigate = useNavigate();
   const boxRef = useRef(null);
+  const categoryRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   const [siteLogo, setSiteLogo] = useState("");
-  const [siteBrand, setSiteBrand] = useState("Zarvila");
+  const [siteBrand, setSiteBrand] = useState("Shoukhinshop");
 
-  // ⭐ header top bar config (text + socials)
+  // ⭐ header top bar config
   const [headerConfig, setHeaderConfig] = useState(null);
 
-  // ✅ ticker index (1 by 1 show)
+  // ✅ ticker index
   const [tickerIndex, setTickerIndex] = useState(0);
 
-  /* ========== 1) Logo + Brand name load ========== */
+  /* ========== Load settings ========== */
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        const res = await fetchPublicSettings(); // { success, data }
+        const res = await fetchPublicSettings();
         const data = res?.data || {};
         if (!alive) return;
 
@@ -87,13 +57,12 @@ const HeaderDesktop = ({
     };
   }, []);
 
-  /* ========== 2) Header settings (top bar + socials) load ========== */
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        const res = await fetchPublicHeaderSettings(); // { success, data }
+        const res = await fetchPublicHeaderSettings();
         const data = res?.data || {};
         if (!alive) return;
 
@@ -108,7 +77,7 @@ const HeaderDesktop = ({
     };
   }, []);
 
-  /* ========== 3) Search debounce ========== */
+  /* ========== Search debounce ========== */
   useEffect(() => {
     const q = searchTerm?.trim();
 
@@ -125,10 +94,11 @@ const HeaderDesktop = ({
     return () => clearTimeout(t);
   }, [searchTerm, productSearch]);
 
-  /* ========== 4) Click outside closes dropdown ========== */
+  /* ========== Click outside closes dropdowns ========== */
   useEffect(() => {
     const onDocClick = (e) => {
       if (!boxRef.current?.contains(e.target)) setOpen(false);
+      if (!categoryRef.current?.contains(e.target)) setCategoryOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -142,7 +112,7 @@ const HeaderDesktop = ({
     navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
-  // ✅ top bar items (supports new: topBarTexts[], old: topBarText)
+  // ✅ top bar items
   const topBarItems = (
     Array.isArray(headerConfig?.topBarTexts) && headerConfig.topBarTexts.length
       ? headerConfig.topBarTexts
@@ -152,114 +122,196 @@ const HeaderDesktop = ({
       : []
   ).filter(Boolean);
 
-  // ✅ Auto rotate: 1 item after another
+  // ✅ Auto rotate top bar items
   useEffect(() => {
     if (!topBarItems.length) return;
-
-    // safe reset if list size changes
     setTickerIndex((i) => (i >= topBarItems.length ? 0 : i));
 
     const id = setInterval(() => {
       setTickerIndex((i) => (i + 1) % topBarItems.length);
-    }, 3000); // ✅ 3 seconds
+    }, 3000);
 
     return () => clearInterval(id);
   }, [topBarItems.length]);
 
+  // ✅ Safe social links filter
+  const socialLinks = headerConfig?.socialLinks || {};
+  const validSocialLinks = Object.entries(socialLinks)
+    .filter(([key, url]) => {
+      // Check if URL exists and is a string
+      if (!url || typeof url !== 'string') return false;
+      
+      // Check if we have an icon for this social platform
+      if (!SOCIAL_ICON_MAP[key]) return false;
+      
+      // Check if URL is not empty after trimming
+      return url.trim().length > 0;
+    });
+
   return (
     <>
-      {/* ===== Desktop Top Bar ===== */}
-      <nav className="hidden md:flex bg-white border-b border-[#070707] font-manrope">
-        <div className="flex justify-between w-full max-w-full mx-auto px-6 h-16 ">
-                   {/* Logo / Brand */}
-          <Link to="/" className="justify-self-center mr-20">
-            {siteLogo ? (
-              <img
-                className="h-12 w-auto"
-                src={`${settingsApi.API_BASE}${siteLogo}`}
-                alt={siteBrand}
-                loading="lazy"
-              />
-            ) : (
-              <span className="text-black font-semibold tracking-wide">
-                {siteBrand}
-              </span>
-            )}
-          </Link>
-          {/* LEFT: social + promo */}
-          <div className="flex items-center gap-5 text-gray-500">
-            <div className="flex items-center gap-4">
-              {headerConfig?.socialLinks &&
-                Object.entries(headerConfig.socialLinks).map(([key, value]) => {
-                  if (!value?.isActive || !value?.url) return null;
-
-                  const Icon = SOCIAL_ICON_MAP[key];
-                  if (!Icon) return null;
-
-                  return (
-                    <a
-                      key={key}
-                      href={value.url}
-                      aria-label={key}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:text-gray-800"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  );
-                })}
-            </div>
-
-            {/* ✅ Offer text (1 by 1 rotating) */}
-            {headerConfig?.showTopBar !== false && topBarItems.length > 0 && (
-              <div className="topbar">
-                <div className="topbar-marquee ticker text-xs tracking-wide uppercase text-gray-600 font-medium">
-                  <span key={tickerIndex} className="topbar-text ppt-jump-in">
-                    {topBarItems[tickerIndex]}
-                  </span>
+      {/* ===== TOP ANNOUNCEMENT BAR ===== */}
+      {topBarItems.length > 0 && (
+        <div className="hidden md:block bg-gradient-to-r from-[#4b0c23] to-[#951331] text-white">
+          <div className="max-w-7xl mx-auto px-6 py-1.5">
+            <div className="flex items-center justify-center">
+              <div className="flex-1 flex justify-center">
+                <div className="relative h-6 overflow-hidden">
+                  <div
+                    className="transition-transform duration-500 ease-in-out"
+                    style={{ transform: `translateY(-${tickerIndex * 24}px)` }}
+                  >
+                    {topBarItems.map((text, idx) => (
+                      <div
+                        key={idx}
+                        className="h-6 flex items-center justify-center"
+                      >
+                        <p className="text-xs font-medium text-center">
+                          {text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
+              
+              {/* Social Links - FIXED: Added null check and string validation */}
+              {validSocialLinks.length > 0 && (
+                <div className="flex items-center gap-3">
+                  {validSocialLinks.map(([key, url]) => {
+                    const Icon = SOCIAL_ICON_MAP[key];
+                    if (!Icon) return null;
+                    
+                    return (
+                      <a
+                        key={key}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-300 hover:text-white transition-colors"
+                        aria-label={key}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+      )}
 
- 
+      {/* ===== MAIN HEADER ===== */}
+      <header className="hidden md:block sticky top-0 z-40 bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <div className="flex items-center justify-between">
+            {/* LOGO */}
+            <div className="flex-shrink-0">
+              <Link to="/" className="flex items-center">
+                {siteLogo ? (
+                  <img
+                    className="h-12 w-auto"
+                    src={`${settingsApi.API_BASE}${siteLogo}`}
+                    alt={siteBrand}
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-gray-900 tracking-tight">
+                    {siteBrand}
+                  </span>
+                )}
+              </Link>
+            </div>
 
-          {/* RIGHT: search + user + cart + wishlist */}
-          <div className="flex items-center justify-end gap-5 text-gray-700">
-            {/* Search box + suggestions */}
-            <div
-              ref={boxRef}
-              className="relative hidden lg:flex w-[300px] rounded-full overflow-visible"
-            >
-              <form onSubmit={onSubmit} className="flex items-center w-full">
-                <input
-                  type="text"
-                  className="text-gray-700 py-1.5 px-3 flex-grow focus:outline-none focus:bg-white border border-gray-300 rounded-l-full font-normal text-xs placeholder:text-gray-500"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => searchTerm && setOpen(true)}
-                  aria-label="Search"
-                />
-                <button
-                  type="submit"
-                  className="flex items-center justify-center bg-gray-800 text-white px-3 py-[7px] rounded-r-full hover:bg-black transition-colors"
-                  aria-label="Search"
-                >
-                  <FiSearch className="h-4 w-4" />
-                </button>
-              </form>
+            {/* CATEGORIES MENU */}
+            <div className="flex-1 mx-8">
+              <nav className="flex items-center justify-center">
+                <ul className="flex items-center space-x-8">
+                  <li>
+                    <Link
+                      to="/"
+                      className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
+                    >
+                      Home
+                    </Link>
+                  </li>
+                  
+                  {/* Browse All Categories Dropdown */}
+                  <li className="relative" ref={categoryRef}>
+                    <button
+                      onClick={() => setCategoryOpen(!categoryOpen)}
+                      className="flex items-center text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
+                    >
+                      <span>Browse All Categories</span>
+                      <FiChevronDown className={`ml-1 h-4 w-4 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {categoryOpen && categories && categories.length > 0 && (
+                      <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
+                        {categories.map((category) => (
+                          <Link
+                            key={category._id || category.id || Math.random()}
+                            to={`/category/${category.slug || category._id}`}
+                            onClick={() => setCategoryOpen(false)}
+                            className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="truncate">{category.name || "Unnamed Category"}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                  
+                  <li>
+                    <Link
+                      to="/all-product"
+                      className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
+                    >
+                      All Products
+                    </Link>
+                  </li>
 
-              {/* Suggestions Dropdown */}
-              {open && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-white shadow-xl rounded-lg z-50 max-h-[300px] overflow-y-auto border border-gray-100">
-                  {searchResults.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-gray-500">
-                      No results
-                    </div>
-                  ) : (
-                    searchResults.map((product) => (
+                  
+                  <li>
+                    <Link
+                      to="/contact"
+                      className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
+                    >
+                      Contact
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* RIGHT ACTIONS */}
+            <div className="flex items-center space-x-6">
+              {/* SEARCH */}
+              <div className="relative" ref={boxRef}>
+                <form onSubmit={onSubmit} className="relative">
+                  <input
+                    type="text"
+                    className="w-96 pl-4 pr-10 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => searchTerm && setOpen(true)}
+                    aria-label="Search"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label="Search"
+                  >
+                    <FiSearch className="h-4 w-4" />
+                  </button>
+                </form>
+                
+                {/* Search Suggestions */}
+                {open && searchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 max-h-96 overflow-y-auto">
+                    {searchResults.map((product) => (
                       <Link
                         key={product._id}
                         to={`/product-details/${product._id}`}
@@ -267,132 +319,65 @@ const HeaderDesktop = ({
                           setSearchTerm("");
                           setOpen(false);
                         }}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition border-b last:border-b-0"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                       >
                         <img
-                          loading="lazy"
                           src={product.productImage?.[0] || "/placeholder.png"}
-                          alt={product.productName}
-                          className="w-8 h-8 rounded object-cover border border-gray-200"
+                          alt={product.productName || "Product"}
+                          className="w-10 h-10 rounded object-cover border border-gray-200"
+                          loading="lazy"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-medium text-gray-800 truncate">
-                            {product.productName}
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {product.productName || "Unnamed Product"}
                           </p>
                           {product.price != null && (
-                            <p className="text-xs text-gray-500 truncate">
-                              ৳ {product.price}
+                            <p className="text-xs text-gray-500">
+                              ৳ {product.price.toLocaleString()}
                             </p>
                           )}
                         </div>
                       </Link>
-                    ))
-                  )}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* WISHLIST */}
+              <Link
+                to="/dashboard/wishlist"
+                className="text-gray-700 hover:text-gray-900 transition-colors relative"
+                aria-label="Wishlist"
+              >
+                <FiHeart className="h-5 w-5" />
+              </Link>
+
+              {/* CART */}
+              <Link
+                to="/dashboard/cart"
+                className="text-gray-700 hover:text-gray-900 transition-colors relative"
+                aria-label="Cart"
+              >
+                <FiShoppingBag className="h-5 w-5" />
+                {cart && cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 text-xs min-w-[20px] h-[20px] px-1 rounded-full bg-red-500 text-white flex items-center justify-center font-medium">
+                    {cart.length > 99 ? '99+' : cart.length}
+                  </span>
+                )}
+              </Link>
+
+              {/* ACCOUNT */}
+              <Link
+                to={user ? "/dashboard/profile" : "/login"}
+                className="text-gray-700 hover:text-gray-900 transition-colors"
+                aria-label="Account"
+              >
+                <FiUser className="h-5 w-5" />
+              </Link>
             </div>
-
-            {/* Cart */}
-            <Link to="/dashboard/cart" aria-label="Cart" className="relative">
-              <FiShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 text-[10px] min-w-[18px] h-[18px] px-1 rounded-full bg-black text-white flex items-center justify-center">
-                {cart?.length ?? 0}
-              </span>
-            </Link>
-
-            {/* Fallback search icon (smaller screens) */}
-            <button
-              type="button"
-              aria-label="Search"
-              className="hover:text-black lg:hidden"
-            >
-              <FiSearch className="h-5 w-5" />
-            </button>
-
-
-
-            {/* Account */}
-            <Link
-              to={user ? "dashboard/profile" : "/login"}
-              aria-label="Account"
-              className="hover:text-black"
-            >
-              <FiUser className="h-5 w-5" />
-            </Link>
           </div>
         </div>
-      </nav>
-
-      {/* ===== Secondary bar (categories + links) ===== */}
-      <nav className="w-full hidden md:block bg-gradient-to-r from-[#4b0c23] to-[#45106e] relative">
-        <div className="w-full max-w-7xl mx-auto px-6 h-8 grid grid-cols-1 items-center">
-          {/* SR-only info */}
-          <div className="sr-only">
-            <a href="tel:7123399294">712-339-9294</a>
-            <a href="mailto:info@moderno-demo.com">info@moderno-demo.com</a>
-          </div>
-
-          <div className="flex items-center justify-center font-poppins mt-1.5">
-            <ul className="flex items-center gap-8 text-[11px] font-manrope font-semibold uppercase tracking-[0.12em]">
-              <li>
-                <a
-                  href="/"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  Homes
-                </a>
-              </li>
-
-              <li className="relative group">
-                <Link
-                  to="/mensub"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  Mens
-                </Link>
-              </li>
-
-              <li className="relative group">
-                <Link
-                  to="/womensub"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  Womens
-                </Link>
-              </li>
-
-              <li className="relative group">
-                <Link
-                  to="/kidsub"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  Kids
-                </Link>
-              </li>
-
-              <li className="relative group">
-                <Link
-                  to="/accessories"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  Accessories
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/all-product"
-                  className="text-white border-b-[1px] border-transparent pb-1 hover:border-white transition"
-                >
-                  All Product
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="flex items-center justify-end gap-5" />
-        </div>
-      </nav>
+      </header>
     </>
   );
 };

@@ -16,6 +16,7 @@ import AccessoriesCollection from "../../components/ui/AccessoriesCollection";
 import HomeMarqueeBar from "../../../src/components/ui/HomeMarqueeBar";
 import RecentlyViewed from "../../components/RecentlyViewed";
 import PopularProduct from "./sections/popularProducts/PopularProducts";
+import GifBannerSection from "../../components/GifBannerSection";
 
 const Home = () => {
   return (
@@ -38,6 +39,11 @@ const Home = () => {
       {/* <HomeMarqueeBar /> */}
       <ProductCategory />
       <PopularProduct />
+<GifBannerSection
+  imageUrl="https://img.lazcdn.com/us/domino/356d6a86-5354-47c0-8019-6d0dc2c682e3_BD-1188-140.gif_2200x2200q80.gif_.webp"
+  to="/all-product"
+  alt="Sale Banner"
+/>
 
    
 

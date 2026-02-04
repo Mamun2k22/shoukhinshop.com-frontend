@@ -2,7 +2,6 @@
 import { useState, useMemo } from "react";
 import { Outlet, Link, NavLink } from "react-router-dom";
 import { RxDashboard } from "react-icons/rx";
-import { LuUserRoundCheck } from "react-icons/lu";
 import {
   FiMenu,
   FiSearch,
@@ -34,7 +33,6 @@ import Color from "../../components/Color";
 import useLogout from "../../hooks/useLogout";
 import { useUser } from "../../hooks/userContext";
 import { FaChartLine, FaList } from "react-icons/fa";
-import { AiOutlineGlobal } from "react-icons/ai";
 
 const navBase =
   "flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-medium transition";
@@ -189,29 +187,12 @@ export default function Dashboard() {
     },
     {
       title: "Management",
-      // extras: ({ navBase, navIdle }) => (
-      //   <div className="flex flex-col gap-1">
-      //     <button
-      //       type="button"
-      //       onClick={() => setOpenColor(true)}
-      //       className={`${navBase} ${navIdle} w-full`}
-      //     >
-      //       <IoColorFill className="text-base" />
-      //       <span>Color</span>
-      //     </button>
-      //   </div>
-      // ),
 
       items: [
         {
           to: "/dashboard/categories",
           icon: <FiLayers />,
           label: "Categories",
-        },
-        {
-          to: "/dashboard/subcategories",
-          icon: <FiMenu />,
-          label: "Sub Category",
         },
         {
           to: "/dashboard/color",
@@ -233,16 +214,11 @@ export default function Dashboard() {
           icon: <FiShield />,
           label: "Logo",
         },
-        {
-          to: "/dashboard/setting-section",
-          icon: <FiSettings />,
-          label: "Home Section",
-        },
-        {
-          to: "/dashboard/setting-header",
-          icon: <FiLayout />,
-          label: "Header Section",
-        },
+        // {
+        //   to: "/dashboard/setting-header",
+        //   icon: <FiLayout />,
+        //   label: "Header Section",
+        // },
         {
           to: "/dashboard/setting-shipping",
           icon: <FiTruck />,
@@ -255,7 +231,7 @@ export default function Dashboard() {
         },
         {
           to: "/dashboard/General-setting",
-          icon: <AiOutlineGlobal />,
+          icon: <FiSettings />,
           label: "General Setting",
         },
         // {
@@ -295,10 +271,7 @@ export default function Dashboard() {
         },
       ],
     },
-    // {
-    //   title: "Verification",
-    //   items: [{ to: "/seller/verification", icon: <RiAdminLine />, label: "Seller Verification" }],
-    // },
+
   ];
 
   // ✅ role না আসা পর্যন্ত গ্রুপ/লিংক রেন্ডার কোরো না
