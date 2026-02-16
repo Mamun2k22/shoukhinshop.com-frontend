@@ -24,8 +24,8 @@ export default function Footer() {
 
 
   return (
-    <footer className="bg-gradient-to-r from-[#72072f] to-[#ab1010]
- text-gray-300 py-12 font-manrope mt-6">
+    <footer className="bg-gradient-to-r from-[#291a22] to-[#460227]
+ text-gray-100 py-12 font-manrope mt-6">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
         {/* LEFT column */}
         <div className="flex flex-col justify-between">
@@ -53,10 +53,10 @@ export default function Footer() {
         {/* MIDDLE column */}
         <div>
           <h3 className="text-lg font-bold text-white">{phone}</h3>
-          <p className="text-sm uppercase font-semibold text-gray-400 mt-1">
+          <p className="text-sm uppercase font-semibold text-gray-200 mt-1">
             24/7 Personal Support
           </p>
-        <p className="mt-4 text-sm leading-relaxed text-gray-400">
+        <p className="mt-4 text-sm leading-relaxed text-gray-200">
   {description}
 </p>
 

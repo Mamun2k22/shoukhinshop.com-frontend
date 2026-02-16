@@ -526,7 +526,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
               {[
                 { key: "description", label: "Description" },
                 { key: "additional", label: "Additional info" },
-                { key: "vendor", label: "Vendor" },
+                // { key: "vendor", label: "Vendor" },
                 { key: "reviews", label: "Reviews" },
               ].map((t) => {
                 const active = activeTab === t.key;
@@ -585,7 +585,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                   <p className="text-slate-500">No additional information.</p>
                 ))}
 
-              {activeTab === "vendor" && (
+              {/* {activeTab === "vendor" && (
                 <div className="space-y-2">
                   <h4 className="font-semibold text-slate-900">
                     Vendor Information
@@ -594,7 +594,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                   <p className="mb-2">Country: Bangladesh</p>
                   <p className="mb-2">Contact: info@shoukhinshop.com</p>
                 </div>
-              )}
+              )} */}
               {activeTab === "reviews" && <ProductReviews productId={_id} />}
             </div>
           </div>
@@ -637,7 +637,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
         <ToastContainer />
       </div>
 
-      <DealsOffer />
+
     </>
   );
 }

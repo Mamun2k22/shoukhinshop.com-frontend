@@ -16,6 +16,21 @@ const statusColor = (s) => {
   return "bg-gray-100 text-gray-800 ring-1 ring-gray-200";
 };
 
+const transferColor = (s) => {
+  const v = (s || "").toLowerCase();
+  if (v === "not_required")
+    return "bg-gray-100 text-gray-700 ring-1 ring-gray-200";
+  if (v === "pending")
+    return "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200";
+  if (v === "transferred")
+    return "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200";
+  if (v === "failed")
+    return "bg-rose-100 text-rose-800 ring-1 ring-rose-200";
+  return "bg-gray-100 text-gray-800 ring-1 ring-gray-200";
+};
+
+
+
 const formatDateBD = (dateString) => {
   try {
     return new Intl.DateTimeFormat("en-GB", {
@@ -209,9 +224,11 @@ const Order = () => {
           date: order.createdAt,
           price: order.totalPrice,
           status: order.orderStatus,
+          transferStatus: order.transferStatus,   // ✅ ADD THIS
           qty: p?.quantity || 1,
           size: p?.selectedSize || p?.size || null,
           color: p?.selectedColor || p?.color || null,
+
         };
       })
     );
@@ -331,6 +348,8 @@ const Order = () => {
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Price</th>
                 <th className="px-6 py-3">Order Status</th>
+                <th className="px-6 py-3">Transfer</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -396,6 +415,16 @@ const Order = () => {
                       {r.status || "Unknown"}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+  <span
+    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${transferColor(
+      r.transferStatus
+    )}`}
+  >
+    {r.transferStatus || "—"}
+  </span>
+</td>
+
                 </tr>
               ))}
             </tbody>
@@ -456,6 +485,18 @@ const Order = () => {
                     {r.status || "Unknown"}
                   </span>
                 </div>
+                {r.transferStatus && (
+  <div className="mt-1">
+    <span
+      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${transferColor(
+        r.transferStatus
+      )}`}
+    >
+      Transfer: {r.transferStatus}
+    </span>
+  </div>
+)}
+
                 <h3
                   className="text-sm font-medium text-gray-900 w-60 xl:w-full"
                   title={r.name}

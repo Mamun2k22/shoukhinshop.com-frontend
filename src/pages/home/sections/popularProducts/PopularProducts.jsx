@@ -150,7 +150,7 @@ const PopularProduct = () => {
     </p>
 
     {/* big title (like template) */}
-    <h2 className="mt-3 text-4xl md:text-5xl font-extrabold text-gray-900">
+    <h2 className="mt-3 text-3xl md:text-4xl font-extrabold text-gray-900">
       Our ALL <span className="text-sky-500">Items</span>
     </h2>
 
@@ -200,142 +200,142 @@ const PopularProduct = () => {
             }
 
             return (
-              <div
-                key={product._id}
-                className="group relative rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
-              >
-                {/* Badge */}
-                <div
-                  className={`absolute top-3 left-3 z-20 ${badgeCls} text-white text-[10px] font-bold px-3 py-1 rounded-full`}
-                >
-                  {badgeText}
-                </div>
-
-                {/* Image area */}
-                <Link
-                  to={`/product-details/${product._id}`}
-                  className="block relative overflow-hidden rounded-2xl pt-3"
-                >
-                  <div className="h-44 sm:h-48 md:h-52 flex items-center justify-center px-4">
-                    <img
-                      src={product.productImage}
-                      alt={product.productName}
-                      loading="lazy"
-                      className="max-h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-
-                  {/* Hover Actions */}
-                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigate(`/product-details/${product._id}`);
-                      }}
-                      className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
-                      title="Quick View"
-                    >
-                      <FiEye />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        Swal.fire({
-                          icon: "info",
-                          title: "Wishlist",
-                          text: "Wishlist feature will be added soon!",
-                          timer: 1400,
-                          showConfirmButton: false,
-                        });
-                      }}
-                      className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
-                      title="Wishlist"
-                    >
-                      <FiHeart />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        Swal.fire({
-                          icon: "info",
-                          title: "Compare",
-                          text: "Compare feature will be added soon!",
-                          timer: 1400,
-                          showConfirmButton: false,
-                        });
-                      }}
-                      className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
-                      title="Compare"
-                    >
-                      <FiShuffle />
-                    </button>
-                  </div>
-                </Link>
-
-                {/* Content */}
-                <div className="px-4 pb-4 pt-2">
-                  <h3 className="text-[15px] font-semibold text-gray-900 line-clamp-2 min-h-[42px]">
-                    {product.productName}
-                  </h3>
-
-                  {/* Rating */}
-                  <div className="mt-2">
-                    <Rating value={product?.rating || 4.5} />
-                  </div>
-
-   {/* Price + Cart (same row) */}
-<div className="mt-3 flex items-center justify-between gap-3">
-  
-  {/* Price */}
-  <div className="flex items-end gap-2">
-    <span className="text-lg font-extrabold text-rose-500 leading-none">
-      ৳{formatMoney(price)}
-    </span>
-
-    {regularPrice > price && (
-      <span className="text-sm text-gray-400 line-through leading-none">
-        ৳{formatMoney(regularPrice)}
-      </span>
-    )}
+             <div
+  key={product._id}
+  className="group relative rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
+>
+  {/* Badge */}
+  <div
+    className={`absolute top-3 left-3 z-20 ${badgeCls} text-white text-[10px] font-bold px-3 py-1 rounded-full`}
+  >
+    {badgeText}
   </div>
 
-  {/* Cart button */}
-  <button
-    disabled={isOutOfStock}
-    onClick={() => {
-      if (isOutOfStock) {
-        Swal.fire({
-          icon: "warning",
-          title: "Out of stock",
-          text: "This product is currently unavailable.",
-          timer: 1600,
-          showConfirmButton: false,
-        });
-        return;
-      }
-      handleAddToCart(product._id);
-    }}
-    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all
-      ${
-        isOutOfStock
-          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-          : "bg-sky-500 text-white hover:scale-105 hover:bg-sky-600"
-      }`}
-    title="Add to cart"
+  {/* Image area */}
+  <Link
+    to={`/product-details/${product._id}`}
+    className="block relative overflow-hidden rounded-2xl pt-3"
   >
-    <HiOutlineShoppingCart className="text-lg" />
-  </button>
+    <div className="h-44 sm:h-48 md:h-52 flex items-center justify-center px-4">
+      <img
+        src={product.productImage}
+        alt={product.productName}
+        loading="lazy"
+        className="max-h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+      />
+    </div>
+
+    {/* Hover Actions */}
+    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          navigate(`/product-details/${product._id}`);
+        }}
+        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        title="Quick View"
+      >
+        <FiEye />
+      </button>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          Swal.fire({
+            icon: "info",
+            title: "Wishlist",
+            text: "Wishlist feature will be added soon!",
+            timer: 1400,
+            showConfirmButton: false,
+          });
+        }}
+        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        title="Wishlist"
+      >
+        <FiHeart />
+      </button>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          Swal.fire({
+            icon: "info",
+            title: "Compare",
+            text: "Compare feature will be added soon!",
+            timer: 1400,
+            showConfirmButton: false,
+          });
+        }}
+        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        title="Compare"
+      >
+        <FiShuffle />
+      </button>
+    </div>
+  </Link>
+
+  {/* Content */}
+  <div className="px-4 pb-4 pt-2">
+    {/* ✅ Name now clickable (link added) */}
+    <Link to={`/product-details/${product._id}`} className="block">
+      <h3 className="text-[15px] font-semibold text-gray-900 line-clamp-2 min-h-[42px] hover:text-sky-600 transition">
+        {product.productName}
+      </h3>
+    </Link>
+
+    {/* Rating */}
+    <div className="mt-2">
+      <Rating value={product?.rating || 4.5} />
+    </div>
+
+    {/* Price + Cart (same row) */}
+    <div className="mt-3 flex items-center justify-between gap-3">
+      {/* Price */}
+      <div className="flex items-end gap-2">
+        <span className="text-lg font-extrabold text-rose-500 leading-none">
+          ৳{formatMoney(price)}
+        </span>
+
+        {regularPrice > price && (
+          <span className="text-sm text-gray-400 line-through leading-none">
+            ৳{formatMoney(regularPrice)}
+          </span>
+        )}
+      </div>
+
+      {/* Cart button (no navigation) */}
+      <button
+        disabled={isOutOfStock}
+        onClick={() => {
+          if (isOutOfStock) {
+            Swal.fire({
+              icon: "warning",
+              title: "Out of stock",
+              text: "This product is currently unavailable.",
+              timer: 1600,
+              showConfirmButton: false,
+            });
+            return;
+          }
+          handleAddToCart(product._id);
+        }}
+        className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all
+          ${
+            isOutOfStock
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-sky-500 text-white hover:scale-105 hover:bg-sky-600"
+          }`}
+        title="Add to cart"
+      >
+        <HiOutlineShoppingCart className="text-lg" />
+      </button>
+    </div>
+  </div>
 </div>
 
-
-            
-                </div>
-              </div>
             );
           })}
         </div>

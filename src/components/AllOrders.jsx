@@ -240,6 +240,8 @@ const AllOrders = () => {
                 <th className="px-4 sm:px-6 py-3 text-left font-medium">Qty</th>
                 <th className="px-4 sm:px-6 py-3 text-left font-medium">Price</th>
                 <th className="px-4 sm:px-6 py-3 text-right font-medium">Payment</th>
+                <th className="px-4 sm:px-6 py-3 text-right font-medium">Transfer</th>
+
                 <th className="px-4 sm:px-6 py-3 text-right font-medium">Action</th>
               </tr>
             </thead>
@@ -291,6 +293,24 @@ const AllOrders = () => {
                           </span>
                         </div>
                       </td>
+{/* ✅ Transfer Status */}
+<td className="px-4 sm:px-6 py-3">
+  <div className="flex justify-end">
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+        (order?.transferStatus || "not_required") === "transferred"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+          : (order?.transferStatus || "") === "pending"
+          ? "bg-amber-50 text-amber-700 border border-amber-200"
+          : (order?.transferStatus || "") === "failed"
+          ? "bg-rose-50 text-rose-700 border border-rose-200"
+          : "bg-gray-50 text-gray-700 border border-gray-200"
+      }`}
+    >
+      {order?.transferStatus || "not_required"}
+    </span>
+  </div>
+</td>
 
                       <td className="px-4 sm:px-6 py-3">
                         <div className="flex justify-end">

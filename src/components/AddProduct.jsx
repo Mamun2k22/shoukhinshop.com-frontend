@@ -16,7 +16,11 @@ const withBase = (path) => {
 const isNonEmpty = (v) => typeof v === "string" && v.trim().length > 0;
 
 const AddProduct = ({ isOpen, isClose, refetch }) => {
-  if (!isOpen) return null;
+ 
+
+  // 🔥 Dropship system
+const [supplier, setSupplier] = useState("local");
+const [banggoProductId, setBanggoProductId] = useState("");
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -238,6 +242,24 @@ const AddProduct = ({ isOpen, isClose, refetch }) => {
     if (!isNonEmpty(details)) return toast.warn("Product info is required");
     if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
     if (stock < 0) return toast.warn("Stock cannot be negative");
+// validations
+if (!isNonEmpty(productName)) return toast.warn("Product name is required");
+if (!selectedCategories.length) return toast.warn("Please select at least one category");
+if (!imageUrl.length) return toast.warn("Please upload at least 1 image");
+
+if (buyPrice < 0) return toast.warn("Buying price cannot be negative");
+if (regularPrice <= 0) return toast.warn("Regular price must be greater than 0");
+if (price <= 0) return toast.warn("Sell price must be greater than 0");
+
+if (!isNonEmpty(sku)) return toast.warn("SKU is required");
+if (!isNonEmpty(details)) return toast.warn("Product info is required");
+if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
+if (stock < 0) return toast.warn("Stock cannot be negative");
+
+// ✅ এখানে বসবে (payload এর আগে)
+if (supplier === "banggomart" && !banggoProductId) {
+  return toast.warn("Banggomart Product ID is required");
+}
 
     const sizeWeightArray = sizeWeights
       .map((sw) => ({ size: String(sw.size || "").trim() }))
@@ -274,6 +296,11 @@ const AddProduct = ({ isOpen, isClose, refetch }) => {
       color: selectedColors,
       details,
       longDetails,
+        // 🔥 ADD THESE
+  supplier,
+  banggoProductId: supplier === "banggomart"
+    ? Number(banggoProductId)
+    : null,
     };
 
     setIsSaving(true);
@@ -312,6 +339,9 @@ const AddProduct = ({ isOpen, isClose, refetch }) => {
 
       setDeliveryType("cash_on_delivery");
       setDeliveryZone("inside_dhaka");
+      // ✅ এখানেই বসবে
+setSupplier("local");
+setBanggoProductId("");
     } catch (err) {
       console.error(err);
       toast.error(err?.message || "Failed to add product.");
@@ -331,7 +361,7 @@ const AddProduct = ({ isOpen, isClose, refetch }) => {
   if (categoriesError) return <div>Error loading categories: {categoriesError.message}</div>;
   if (subcategoriesError) return <div>Error loading subcategories: {subcategoriesError.message}</div>;
   if (colorError) return <div>Error loading colors: {colorError.message}</div>;
-
+ if (!isOpen) return null;
   return (
     <div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -440,6 +470,41 @@ const AddProduct = ({ isOpen, isClose, refetch }) => {
                   placeholder="Apple"
                 />
               </div>
+
+{/* Supplier */}
+<div>
+  <label className="block text-sm font-medium mb-1">Supplier</label>
+  <select
+    value={supplier}
+    onChange={(e) => setSupplier(e.target.value)}
+    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="local">Local</option>
+    <option value="banggomart">Banggomart (Dropship)</option>
+  </select>
+</div>
+
+{/* Banggomart Product ID (Only if banggomart) */}
+{supplier === "banggomart" && (
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      Banggomart Product ID
+    </label>
+    <input
+      type="number"
+      value={banggoProductId}
+      onChange={(e) => setBanggoProductId(e.target.value)}
+      required
+      className="w-full px-3 py-2 rounded-lg border border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      placeholder="e.g. 33"
+    />
+    <p className="text-xs text-gray-500 mt-1">
+      Enter Banggomart Product ID for dropshipping
+    </p>
+  </div>
+)}
+
+
 
               {/* ✅ 3 Prices (Sell price keeps old name="price") */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

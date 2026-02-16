@@ -1,4 +1,6 @@
-// // src/dashboard/products/ProductEdit.jsx
+
+
+// src/dashboard/products/ProductEdit.jsx
 // import React, { useEffect, useMemo, useRef, useState } from "react";
 // import { useQuery } from "@tanstack/react-query";
 // import { toast } from "react-toastify";
@@ -12,7 +14,12 @@
 //   return `${base}${needsSlash}${String(p).replace(/^\/+/, "")}`;
 // };
 
-// export default function ProductEdit({ isOpen, isClose, product: productToEdit, refetch }) {
+// export default function ProductEdit({
+//   isOpen,
+//   isClose,
+//   product: productToEdit,
+//   refetch,
+// }) {
 //   if (!isOpen) return null;
 
 //   const id = productToEdit?._id;
@@ -26,16 +33,19 @@
 //   // form state (controlled)
 //   const [sku, setSku] = useState("");
 //   const [productName, setProductName] = useState("");
-//   const [categoryName, setCategoryName] = useState("");        // keep category as plain string
+//   const [categoryName, setCategoryName] = useState(""); // keep category as plain string
 //   const [brand, setBrand] = useState("");
-//   const [price, setPrice] = useState("");                      // keep as string in inputs
+//   const [price, setPrice] = useState(""); // keep as string in inputs
 //   const [discount, setDiscount] = useState("");
 //   const [status, setStatus] = useState("available");
 //   const [stock, setStock] = useState("");
 //   const [details, setDetails] = useState("");
 //   const [longDetails, setLongDetails] = useState("");
 //   const [imageUrl, setImageUrl] = useState([]);
-//   const [sizeWeights, setSizeWeights] = useState([{ size: "", weight: "" }]);
+
+//   // 🔥 এখন থেকে শুধু size
+//   const [sizeWeights, setSizeWeights] = useState([{ size: "" }]);
+
 //   const [selectedColors, setSelectedColors] = useState([]);
 
 //   // keep original product for diffing (to send only changed fields)
@@ -50,7 +60,9 @@
 //     queryKey: ["product-full", id],
 //     enabled: isOpen && !!id,
 //     queryFn: async () => {
-//       const r = await fetch(withBase(`api/products/${id}`), { credentials: "include" });
+//       const r = await fetch(withBase(`api/products/${id}`), {
+//         credentials: "include",
+//       });
 //       if (!r.ok) throw new Error("Failed to fetch product");
 //       return r.json();
 //     },
@@ -62,7 +74,9 @@
 //     queryKey: ["categories"],
 //     enabled: isOpen,
 //     queryFn: async () => {
-//       const r = await fetch(withBase("api/categories"), { credentials: "include" });
+//       const r = await fetch(withBase("api/categories"), {
+//         credentials: "include",
+//       });
 //       if (!r.ok) throw new Error("Failed to fetch categories");
 //       return r.json();
 //     },
@@ -73,7 +87,9 @@
 //     queryKey: ["colors"],
 //     enabled: isOpen,
 //     queryFn: async () => {
-//       const r = await fetch(withBase("api/colors"), { credentials: "include" });
+//       const r = await fetch(withBase("api/colors"), {
+//         credentials: "include",
+//       });
 //       if (!r.ok) throw new Error("Failed to fetch colors");
 //       return r.json();
 //     },
@@ -96,7 +112,7 @@
 //         : fullProduct.categoryName?.name || ""
 //     );
 //     setBrand(fullProduct.brand ?? "");
-//     setPrice(fullProduct.price ?? "");               // controlled as string
+//     setPrice(fullProduct.price ?? "");
 //     setDiscount(fullProduct.discount ?? "");
 //     setStatus(fullProduct.status ?? "available");
 //     setStock(fullProduct.stock ?? "");
@@ -109,13 +125,19 @@
 //         ? [fullProduct.productImage]
 //         : []
 //     );
-//     const sw = Array.isArray(fullProduct.sizeWeight) ? fullProduct.sizeWeight : [];
+
+//     const sw = Array.isArray(fullProduct.sizeWeight)
+//       ? fullProduct.sizeWeight
+//       : [];
 //     setSizeWeights(
 //       sw.length
-//         ? sw.map((x) => ({ size: x?.size ?? "", weight: x?.weight ?? "" }))
-//         : [{ size: "", weight: "" }]
+//         ? sw.map((x) => ({ size: x?.size ?? "" }))
+//         : [{ size: "" }]
 //     );
-//     setSelectedColors(Array.isArray(fullProduct.color) ? fullProduct.color : []);
+
+//     setSelectedColors(
+//       Array.isArray(fullProduct.color) ? fullProduct.color : []
+//     );
 //   }, [fullProduct]);
 
 //   // ------------- handlers -------------
@@ -126,7 +148,9 @@
 
 //   const toggleColor = (value) => {
 //     setSelectedColors((prev) =>
-//       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+//       prev.includes(value)
+//         ? prev.filter((v) => v !== value)
+//         : [...prev, value]
 //     );
 //   };
 
@@ -151,7 +175,9 @@
 //         throw new Error("Upload failed");
 //       });
 //       const results = await Promise.allSettled(uploads);
-//       const ok = results.filter((x) => x.status === "fulfilled").map((x) => x.value);
+//       const ok = results
+//         .filter((x) => x.status === "fulfilled")
+//         .map((x) => x.value);
 //       if (ok.length) {
 //         setImageUrl((prev) => [...prev, ...ok].slice(0, MAX_IMAGES));
 //         toast.success(`${ok.length} image(s) uploaded`);
@@ -164,13 +190,21 @@
 //     }
 //   };
 
-//   const removeImage = (idx) => setImageUrl((prev) => prev.filter((_, i) => i !== idx));
-//   const addRow = () => setSizeWeights((p) => [...p, { size: "", weight: "" }]);
-//   const changeSW = (i, f, v) =>
-//     setSizeWeights((p) => p.map((row, idx) => (idx === i ? { ...row, [f]: v } : row)));
+//   const removeImage = (idx) =>
+//     setImageUrl((prev) => prev.filter((_, i) => i !== idx));
+
+//   // 🔥 size row add/change
+//   const addRow = () =>
+//     setSizeWeights((p) => [...p, { size: "" }]);
+
+//   const changeSize = (i, v) =>
+//     setSizeWeights((p) =>
+//       p.map((row, idx) => (idx === i ? { ...row, size: v } : row))
+//     );
 
 //   // helpers
-//   const toNumOrUndef = (v) => (v === "" || v == null ? undefined : Number(v));
+//   const toNumOrUndef = (v) =>
+//     v === "" || v == null ? undefined : Number(v);
 
 //   // build sparse payload (only changed + non-blank)
 //   const buildPayload = () => {
@@ -186,33 +220,42 @@
 //     };
 
 //     // strings
-//     if (sku?.trim())              push("sku", sku.trim());
-//     if (productName?.trim())      push("productName", productName.trim());
-//     if (categoryName?.trim())     push("categoryName", categoryName.trim());
+//     if (sku?.trim()) push("sku", sku.trim());
+//     if (productName?.trim())
+//       push("productName", productName.trim());
+//     if (categoryName?.trim())
+//       push("categoryName", categoryName.trim());
 //     // brand: allow empty to clear; but only send when actually changed
-//     push("brand", (brand ?? "").trim(), (orig.brand ?? ""));
+//     push("brand", (brand ?? "").trim(), orig.brand ?? "");
 
 //     // numbers
 //     const p = toNumOrUndef(price);
-//     if (p !== undefined)          push("price", p);
+//     if (p !== undefined) push("price", p);
 //     const d = toNumOrUndef(discount);
-//     if (d !== undefined)          push("discount", d);
-//     if (status?.trim())           push("status", status.trim());
+//     if (d !== undefined) push("discount", d);
+//     if (status?.trim()) push("status", status.trim());
 //     const s = toNumOrUndef(stock);
-//     if (s !== undefined)          push("stock", s);
+//     if (s !== undefined) push("stock", s);
 
 //     // text
-//     if (details?.trim())          push("details", details.trim());
-//     if (longDetails?.trim())      push("longDetails", longDetails.trim());
+//     if (details?.trim()) push("details", details.trim());
+//     if (longDetails?.trim())
+//       push("longDetails", longDetails.trim());
 
 //     // arrays
 //     if (Array.isArray(imageUrl) && imageUrl.length > 0) {
 //       push("productImage", imageUrl);
 //     }
+
+//     // 🔥 এখন শুধু sizeWeight → size-only
 //     const filteredSW = (Array.isArray(sizeWeights) ? sizeWeights : [])
-//       .filter((row) => (row.size && row.size.trim() !== "") || (row.weight !== "" && Number(row.weight) > 0))
-//       .map((row) => ({ size: (row.size ?? "").trim(), weight: Number(row.weight) || 0 }));
-//     if (filteredSW.length > 0)    push("sizeWeight", filteredSW, orig.sizeWeight);
+//       .map((row) => ({
+//         size: (row.size ?? "").trim(),
+//       }))
+//       .filter((row) => row.size); // ফাঁকা size বাদ
+
+//     if (filteredSW.length > 0)
+//       push("sizeWeight", filteredSW, orig.sizeWeight);
 
 //     if (Array.isArray(selectedColors)) {
 //       push("color", selectedColors, orig.color);
@@ -240,11 +283,13 @@
 //         body: JSON.stringify(payload),
 //       });
 //       const data = await r.json().catch(() => ({}));
-//       if (!r.ok) throw new Error(data?.message || "Failed to update product");
+//       if (!r.ok)
+//         throw new Error(data?.message || "Failed to update product");
 
 //       toast.success("Product updated successfully!");
 //       refetch?.();
-//       // optionally close: isClose();
+//       // চাইলে চাইলে modal close করতে পারো:
+//       // isClose();
 //     } catch (err) {
 //       toast.error(err.message || "Update failed");
 //     } finally {
@@ -256,7 +301,9 @@
 //   if (fullLoading) {
 //     return (
 //       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-//         <div className="bg-white rounded-xl shadow p-6 text-sm">Loading…</div>
+//         <div className="bg-white rounded-xl shadow p-6 text-sm">
+//           Loading…
+//         </div>
 //       </div>
 //     );
 //   }
@@ -280,41 +327,68 @@
 //             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
 //               <FiCheckCircle className="text-blue-600" />
 //             </span>
-//             <h2 className="text-lg font-semibold">Edit Product</h2>
+//             <h2 className="text-lg font-semibold">
+//               Edit Product
+//             </h2>
 //           </div>
-//           <button onClick={isClose} className="p-2 rounded-full hover:bg-gray-100" aria-label="Close">
+//           <button
+//             onClick={isClose}
+//             className="p-2 rounded-full hover:bg-gray-100"
+//             aria-label="Close"
+//           >
 //             <FiX />
 //           </button>
 //         </div>
 
 //         {/* Body */}
-//         <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4 p-5">
+//         <form
+//           onSubmit={handleSubmit}
+//           className="grid md:grid-cols-2 gap-4 p-5"
+//         >
 //           {/* Left */}
 //           <div className="space-y-4">
 //             <div>
-//               <label className="block text-sm font-medium mb-1">SKU</label>
-//               <input value={sku} onChange={(e) => setSku(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+//               <label className="block text-sm font-medium mb-1">
+//                 SKU
+//               </label>
+//               <input
+//                 value={sku}
+//                 onChange={(e) => setSku(e.target.value)}
+//                 className="w-full px-3 py-1.5 border rounded-lg"
+//               />
 //             </div>
 
 //             <div>
-//               <label className="block text-sm font-medium mb-1">Product Name</label>
-//               <input value={productName} onChange={(e) => setProductName(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+//               <label className="block text-sm font-medium mb-1">
+//                 Product Name
+//               </label>
+//               <input
+//                 value={productName}
+//                 onChange={(e) => setProductName(e.target.value)}
+//                 className="w-full px-3 py-1.5 border rounded-lg"
+//               />
 //             </div>
 
 //             {/* Category */}
 //             <div className="relative">
-//               <label className="block text-sm font-medium mb-1">Category</label>
+//               <label className="block text-sm font-medium mb-1">
+//                 Category
+//               </label>
 //               <div className="flex">
 //                 <input
 //                   readOnly
 //                   value={categoryName}
-//                   onClick={() => setIsDropdownOpen((v) => !v)}
+//                   onClick={() =>
+//                     setIsDropdownOpen((v) => !v)
+//                   }
 //                   className="w-full px-3 py-1.5 border rounded-l-lg"
 //                   placeholder="Select category"
 //                 />
 //                 <button
 //                   type="button"
-//                   onClick={() => setIsDropdownOpen((v) => !v)}
+//                   onClick={() =>
+//                     setIsDropdownOpen((v) => !v)
+//                   }
 //                   className="px-3 border border-l-0 rounded-r-lg bg-gray-50"
 //                 >
 //                   ▼
@@ -325,9 +399,13 @@
 //                   {safeCategories.map((c) => (
 //                     <div
 //                       key={c._id}
-//                       onClick={() => handleCategorySelect(c)}
+//                       onClick={() =>
+//                         handleCategorySelect(c)
+//                       }
 //                       className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
-//                         categoryName === c.name ? "bg-blue-50 text-blue-700" : ""
+//                         categoryName === c.name
+//                           ? "bg-blue-50 text-blue-700"
+//                           : ""
 //                       }`}
 //                     >
 //                       {c.name}
@@ -338,13 +416,21 @@
 //             </div>
 
 //             <div>
-//               <label className="block text-sm font-medium mb-1">Brand</label>
-//               <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+//               <label className="block text-sm font-medium mb-1">
+//                 Brand
+//               </label>
+//               <input
+//                 value={brand}
+//                 onChange={(e) => setBrand(e.target.value)}
+//                 className="w-full px-3 py-1.5 border rounded-lg"
+//               />
 //             </div>
 
 //             <div className="grid grid-cols-2 gap-3">
 //               <div>
-//                 <label className="block text-sm font-medium mb-1">Price</label>
+//                 <label className="block text-sm font-medium mb-1">
+//                   Price
+//                 </label>
 //                 <input
 //                   type="number"
 //                   value={price}
@@ -353,7 +439,9 @@
 //                 />
 //               </div>
 //               <div>
-//                 <label className="block text-sm font-medium mb-1">Discount</label>
+//                 <label className="block text-sm font-medium mb-1">
+//                   Discount
+//                 </label>
 //                 <input
 //                   type="number"
 //                   value={discount}
@@ -365,18 +453,30 @@
 
 //             <div className="grid grid-cols-2 gap-3">
 //               <div>
-//                 <label className="block text-sm font-medium mb-1">Status</label>
-//                 <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg">
+//                 <label className="block text-sm font-medium mb-1">
+//                   Status
+//                 </label>
+//                 <select
+//                   value={status}
+//                   onChange={(e) => setStatus(e.target.value)}
+//                   className="w-full px-3 py-1.5 border rounded-lg"
+//                 >
 //                   <option value="available">Available</option>
-//                   <option value="out_of_stock">Out of Stock</option>
+//                   <option value="out_of_stock">
+//                     Out of Stock
+//                   </option>
 //                 </select>
 //               </div>
 //               <div>
-//                 <label className="block text-sm font-medium mb-1">Quantity</label>
+//                 <label className="block text-sm font-medium mb-1">
+//                   Quantity
+//                 </label>
 //                 <input
 //                   type="number"
 //                   value={stock}
-//                   onChange={(e) => setStock(e.target.value)}
+//                   onChange={(e) =>
+//                     setStock(e.target.value)
+//                   }
 //                   className="w-full px-3 py-1.5 border rounded-lg"
 //                 />
 //               </div>
@@ -388,7 +488,10 @@
 //             {/* Images */}
 //             <div>
 //               <label className="block text-sm font-medium mb-1">
-//                 Product Images <span className="text-gray-500">(max {MAX_IMAGES})</span>
+//                 Product Images{" "}
+//                 <span className="text-gray-500">
+//                   (max {MAX_IMAGES})
+//                 </span>
 //               </label>
 
 //               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition">
@@ -396,16 +499,37 @@
 //                   <FiUpload />
 //                   <span>Click to upload</span>
 //                 </div>
-//                 <input type="file" multiple onChange={handleImageUpload} className="hidden" disabled={imageUrl.length >= MAX_IMAGES} />
+//                 <input
+//                   type="file"
+//                   multiple
+//                   onChange={handleImageUpload}
+//                   className="hidden"
+//                   disabled={imageUrl.length >= MAX_IMAGES}
+//                 />
 //               </label>
-//               {isUploading && <p className="text-xs text-gray-500 mt-1">Uploading…</p>}
+//               {isUploading && (
+//                 <p className="text-xs text-gray-500 mt-1">
+//                   Uploading…
+//                 </p>
+//               )}
 
 //               {!!imageUrl.length && (
 //                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
 //                   {imageUrl.map((url, idx) => (
-//                     <div key={idx} className="relative group">
-//                       <img src={url} alt="" className="w-full h-28 object-cover rounded-lg" />
-//                       <button type="button" onClick={() => removeImage(idx)} className="absolute top-1 right-1 p-1.5 bg-white/90 rounded-full shadow">
+//                     <div
+//                       key={idx}
+//                       className="relative group"
+//                     >
+//                       <img
+//                         src={url}
+//                         alt=""
+//                         className="w-full h-28 object-cover rounded-lg"
+//                       />
+//                       <button
+//                         type="button"
+//                         onClick={() => removeImage(idx)}
+//                         className="absolute top-1 right-1 p-1.5 bg-white/90 rounded-full shadow"
+//                       >
 //                         <FiTrash className="text-red-600" />
 //                       </button>
 //                     </div>
@@ -414,27 +538,32 @@
 //               )}
 //             </div>
 
-//             {/* Size & weight */}
+//             {/* Size only */}
 //             <div>
 //               <div className="flex items-center justify-between mb-2">
-//                 <label className="block text-sm font-medium">Size & Weight</label>
-//                 <button type="button" onClick={addRow} className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700">
+//                 <label className="block text-sm font-medium">
+//                   Sizes
+//                 </label>
+//                 <button
+//                   type="button"
+//                   onClick={addRow}
+//                   className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700"
+//                 >
 //                   + Add Row
 //                 </button>
 //               </div>
 //               <div className="space-y-2">
 //                 {sizeWeights.map((sw, i) => (
-//                   <div key={i} className="grid grid-cols-2 gap-2">
+//                   <div
+//                     key={i}
+//                     className="grid grid-cols-1 gap-2"
+//                   >
 //                     <input
 //                       value={sw.size}
-//                       onChange={(e) => changeSW(i, "size", e.target.value)}
-//                       placeholder="Size"
-//                       className="px-3 py-1.5 border rounded-lg"
-//                     />
-//                     <input
-//                       value={sw.weight}
-//                       onChange={(e) => changeSW(i, "weight", e.target.value)}
-//                       placeholder="Weight"
+//                       onChange={(e) =>
+//                         changeSize(i, e.target.value)
+//                       }
+//                       placeholder="Size (e.g. S, M, L, XL)"
 //                       className="px-3 py-1.5 border rounded-lg"
 //                     />
 //                   </div>
@@ -444,36 +573,68 @@
 
 //             {/* Colors */}
 //             <div className="relative">
-//               <label className="block text-sm font-medium mb-1">Colors</label>
-//               <div className="w-full px-3 py-2 border rounded-lg cursor-pointer bg-white" onClick={() => setIsColorOpen((v) => !v)}>
+//               <label className="block text-sm font-medium mb-1">
+//                 Colors
+//               </label>
+//               <div
+//                 className="w-full px-3 py-2 border rounded-lg cursor-pointer bg-white"
+//                 onClick={() =>
+//                   setIsColorOpen((v) => !v)
+//                 }
+//               >
 //                 {selectedColors.length ? (
 //                   <div className="flex flex-wrap gap-2">
 //                     {selectedColors.map((c, i) => (
-//                       <span key={`${c}-${i}`} className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs bg-gray-100">
-//                         {!/^#/.test(c) && <span>{c}</span>}
-//                         <span className="w-3 h-3 rounded-full border" style={{ background: c }} />
+//                       <span
+//                         key={`${c}-${i}`}
+//                         className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs bg-gray-100"
+//                       >
+//                         {!/^#/.test(c) && (
+//                           <span>{c}</span>
+//                         )}
+//                         <span
+//                           className="w-3 h-3 rounded-full border"
+//                           style={{ background: c }}
+//                         />
 //                       </span>
 //                     ))}
 //                   </div>
 //                 ) : (
-//                   <span className="text-gray-500 text-sm">Select colors</span>
+//                   <span className="text-gray-500 text-sm">
+//                     Select colors
+//                   </span>
 //                 )}
 //               </div>
 //               {isColorOpen && (
 //                 <div className="absolute z-10 w-full bg-white border rounded-lg mt-1 max-h-56 overflow-y-auto shadow">
 //                   {safeColors.map((clr) => {
 //                     const value = clr.name || clr.code;
-//                     const active = selectedColors.includes(value);
+//                     const active =
+//                       selectedColors.includes(value);
 //                     return (
 //                       <div
 //                         key={clr._id || value}
-//                         onClick={() => toggleColor(value)}
+//                         onClick={() =>
+//                           toggleColor(value)
+//                         }
 //                         className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50 ${
 //                           active ? "bg-blue-50" : ""
 //                         }`}
 //                       >
-//                         <span className="text-sm">{clr.name || clr.code}</span>
-//                         <span className={`w-5 h-5 rounded-full border ${active ? "ring ring-blue-400" : ""}`} style={{ background: clr.code || clr.name }} />
+//                         <span className="text-sm">
+//                           {clr.name || clr.code}
+//                         </span>
+//                         <span
+//                           className={`w-5 h-5 rounded-full border ${
+//                             active
+//                               ? "ring ring-blue-400"
+//                               : ""
+//                           }`}
+//                           style={{
+//                             background:
+//                               clr.code || clr.name,
+//                           }}
+//                         />
 //                       </div>
 //                     );
 //                   })}
@@ -485,21 +646,47 @@
 //           {/* Details */}
 //           <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
 //             <div>
-//               <label className="block text-sm font-medium mb-1">Brief description</label>
-//               <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows="4" className="w-full px-3 py-2 border rounded-lg" />
+//               <label className="block text-sm font-medium mb-1">
+//                 Brief description
+//               </label>
+//               <textarea
+//                 value={details}
+//                 onChange={(e) =>
+//                   setDetails(e.target.value)
+//                 }
+//                 rows="4"
+//                 className="w-full px-3 py-2 border rounded-lg"
+//               />
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium mb-1">Full description</label>
-//               <textarea value={longDetails} onChange={(e) => setLongDetails(e.target.value)} rows="4" className="w-full px-3 py-2 border rounded-lg" />
+//               <label className="block text-sm font-medium mb-1">
+//                 Full description
+//               </label>
+//               <textarea
+//                 value={longDetails}
+//                 onChange={(e) =>
+//                   setLongDetails(e.target.value)
+//                 }
+//                 rows="4"
+//                 className="w-full px-3 py-2 border rounded-lg"
+//               />
 //             </div>
 //           </div>
 
 //           {/* Footer */}
 //           <div className="md:col-span-2 flex items-center justify-between pt-2">
-//             <button type="button" onClick={isClose} className="px-4 py-2 rounded-lg border hover:bg-gray-50">
+//             <button
+//               type="button"
+//               onClick={isClose}
+//               className="px-4 py-2 rounded-lg border hover:bg-gray-50"
+//             >
 //               Close
 //             </button>
-//             <button type="submit" disabled={isSaving || isUploading} className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-60">
+//             <button
+//               type="submit"
+//               disabled={isSaving || isUploading}
+//               className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-60"
+//             >
 //               {isSaving ? "Updating…" : "Update Product"}
 //             </button>
 //           </div>
@@ -508,7 +695,6 @@
 //     </div>
 //   );
 // }
-
 // src/dashboard/products/ProductEdit.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -538,6 +724,10 @@ export default function ProductEdit({
   const [isColorOpen, setIsColorOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // ✅ NEW: supplier fields
+  const [supplier, setSupplier] = useState("local"); // "local" | "banggomart"
+  const [banggoProductId, setBanggoProductId] = useState(""); // keep string in input
 
   // form state (controlled)
   const [sku, setSku] = useState("");
@@ -635,19 +825,24 @@ export default function ProductEdit({
         : []
     );
 
-    const sw = Array.isArray(fullProduct.sizeWeight)
-      ? fullProduct.sizeWeight
-      : [];
-    setSizeWeights(
-      sw.length
-        ? sw.map((x) => ({ size: x?.size ?? "" }))
-        : [{ size: "" }]
-    );
+    const sw = Array.isArray(fullProduct.sizeWeight) ? fullProduct.sizeWeight : [];
+    setSizeWeights(sw.length ? sw.map((x) => ({ size: x?.size ?? "" })) : [{ size: "" }]);
 
-    setSelectedColors(
-      Array.isArray(fullProduct.color) ? fullProduct.color : []
+    setSelectedColors(Array.isArray(fullProduct.color) ? fullProduct.color : []);
+
+    // ✅ NEW: hydrate supplier fields
+    setSupplier(fullProduct?.supplier || "local");
+    setBanggoProductId(
+      fullProduct?.banggoProductId != null ? String(fullProduct.banggoProductId) : ""
     );
   }, [fullProduct]);
+
+  // ✅ when supplier changes to local, clear banggo id
+  useEffect(() => {
+    if (supplier !== "banggomart") {
+      setBanggoProductId("");
+    }
+  }, [supplier]);
 
   // ------------- handlers -------------
   const handleCategorySelect = (c) => {
@@ -657,9 +852,7 @@ export default function ProductEdit({
 
   const toggleColor = (value) => {
     setSelectedColors((prev) =>
-      prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value]
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
   };
 
@@ -699,21 +892,19 @@ export default function ProductEdit({
     }
   };
 
-  const removeImage = (idx) =>
-    setImageUrl((prev) => prev.filter((_, i) => i !== idx));
+  const removeImage = (idx) => setImageUrl((prev) => prev.filter((_, i) => i !== idx));
 
   // 🔥 size row add/change
-  const addRow = () =>
-    setSizeWeights((p) => [...p, { size: "" }]);
-
+  const addRow = () => setSizeWeights((p) => [...p, { size: "" }]);
   const changeSize = (i, v) =>
-    setSizeWeights((p) =>
-      p.map((row, idx) => (idx === i ? { ...row, size: v } : row))
-    );
+    setSizeWeights((p) => p.map((row, idx) => (idx === i ? { ...row, size: v } : row)));
 
   // helpers
-  const toNumOrUndef = (v) =>
-    v === "" || v == null ? undefined : Number(v);
+  const toNumOrUndef = (v) => (v === "" || v == null ? undefined : Number(v));
+  const toNumOrNull = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
 
   // build sparse payload (only changed + non-blank)
   const buildPayload = () => {
@@ -728,13 +919,20 @@ export default function ProductEdit({
       if (changed) payload[key] = val;
     };
 
+    // ✅ NEW: supplier fields
+    push("supplier", supplier, orig.supplier || "local");
+    if (supplier === "banggomart") {
+      const idNum = toNumOrNull(banggoProductId);
+      push("banggoProductId", idNum, orig.banggoProductId ?? null);
+    } else {
+      // local হলে নিশ্চিত করে null পাঠানো (যদি আগে banggomart ছিল)
+      push("banggoProductId", null, orig.banggoProductId ?? null);
+    }
+
     // strings
     if (sku?.trim()) push("sku", sku.trim());
-    if (productName?.trim())
-      push("productName", productName.trim());
-    if (categoryName?.trim())
-      push("categoryName", categoryName.trim());
-    // brand: allow empty to clear; but only send when actually changed
+    if (productName?.trim()) push("productName", productName.trim());
+    if (categoryName?.trim()) push("categoryName", categoryName.trim());
     push("brand", (brand ?? "").trim(), orig.brand ?? "");
 
     // numbers
@@ -748,23 +946,19 @@ export default function ProductEdit({
 
     // text
     if (details?.trim()) push("details", details.trim());
-    if (longDetails?.trim())
-      push("longDetails", longDetails.trim());
+    if (longDetails?.trim()) push("longDetails", longDetails.trim());
 
     // arrays
     if (Array.isArray(imageUrl) && imageUrl.length > 0) {
       push("productImage", imageUrl);
     }
 
-    // 🔥 এখন শুধু sizeWeight → size-only
+    // sizeWeight → size-only
     const filteredSW = (Array.isArray(sizeWeights) ? sizeWeights : [])
-      .map((row) => ({
-        size: (row.size ?? "").trim(),
-      }))
-      .filter((row) => row.size); // ফাঁকা size বাদ
+      .map((row) => ({ size: (row.size ?? "").trim() }))
+      .filter((row) => row.size);
 
-    if (filteredSW.length > 0)
-      push("sizeWeight", filteredSW, orig.sizeWeight);
+    if (filteredSW.length > 0) push("sizeWeight", filteredSW, orig.sizeWeight);
 
     if (Array.isArray(selectedColors)) {
       push("color", selectedColors, orig.color);
@@ -776,6 +970,12 @@ export default function ProductEdit({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!id) return;
+
+    // ✅ REQUIRED validation
+    if (supplier === "banggomart" && !String(banggoProductId || "").trim()) {
+      toast.warn("Banggomart Product ID is required");
+      return;
+    }
 
     const payload = buildPayload();
     if (Object.keys(payload).length === 0) {
@@ -792,13 +992,10 @@ export default function ProductEdit({
         body: JSON.stringify(payload),
       });
       const data = await r.json().catch(() => ({}));
-      if (!r.ok)
-        throw new Error(data?.message || "Failed to update product");
+      if (!r.ok) throw new Error(data?.message || "Failed to update product");
 
       toast.success("Product updated successfully!");
       refetch?.();
-      // চাইলে চাইলে modal close করতে পারো:
-      // isClose();
     } catch (err) {
       toast.error(err.message || "Update failed");
     } finally {
@@ -810,18 +1007,14 @@ export default function ProductEdit({
   if (fullLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-xl shadow p-6 text-sm">
-          Loading…
-        </div>
+        <div className="bg-white rounded-xl shadow p-6 text-sm">Loading…</div>
       </div>
     );
   }
   if (fullError) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-xl shadow p-6 text-sm">
-          Failed to load product.
-        </div>
+        <div className="bg-white rounded-xl shadow p-6 text-sm">Failed to load product.</div>
       </div>
     );
   }
@@ -836,9 +1029,7 @@ export default function ProductEdit({
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
               <FiCheckCircle className="text-blue-600" />
             </span>
-            <h2 className="text-lg font-semibold">
-              Edit Product
-            </h2>
+            <h2 className="text-lg font-semibold">Edit Product</h2>
           </div>
           <button
             onClick={isClose}
@@ -850,16 +1041,39 @@ export default function ProductEdit({
         </div>
 
         {/* Body */}
-        <form
-          onSubmit={handleSubmit}
-          className="grid md:grid-cols-2 gap-4 p-5"
-        >
+        <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4 p-5">
           {/* Left */}
           <div className="space-y-4">
+            {/* ✅ NEW Supplier */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Supplier</label>
+                <select
+                  value={supplier}
+                  onChange={(e) => setSupplier(e.target.value)}
+                  className="w-full px-3 py-1.5 border rounded-lg"
+                >
+                  <option value="local">Local</option>
+                  <option value="banggomart">Banggomart</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Banggomart Product ID
+                </label>
+                <input
+                  value={banggoProductId}
+                  onChange={(e) => setBanggoProductId(e.target.value)}
+                  disabled={supplier !== "banggomart"}
+                  placeholder={supplier === "banggomart" ? "e.g. 283" : "N/A"}
+                  className="w-full px-3 py-1.5 border rounded-lg disabled:bg-gray-100"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium mb-1">
-                SKU
-              </label>
+              <label className="block text-sm font-medium mb-1">SKU</label>
               <input
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
@@ -868,9 +1082,7 @@ export default function ProductEdit({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Product Name
-              </label>
+              <label className="block text-sm font-medium mb-1">Product Name</label>
               <input
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
@@ -880,24 +1092,18 @@ export default function ProductEdit({
 
             {/* Category */}
             <div className="relative">
-              <label className="block text-sm font-medium mb-1">
-                Category
-              </label>
+              <label className="block text-sm font-medium mb-1">Category</label>
               <div className="flex">
                 <input
                   readOnly
                   value={categoryName}
-                  onClick={() =>
-                    setIsDropdownOpen((v) => !v)
-                  }
+                  onClick={() => setIsDropdownOpen((v) => !v)}
                   className="w-full px-3 py-1.5 border rounded-l-lg"
                   placeholder="Select category"
                 />
                 <button
                   type="button"
-                  onClick={() =>
-                    setIsDropdownOpen((v) => !v)
-                  }
+                  onClick={() => setIsDropdownOpen((v) => !v)}
                   className="px-3 border border-l-0 rounded-r-lg bg-gray-50"
                 >
                   ▼
@@ -908,13 +1114,9 @@ export default function ProductEdit({
                   {safeCategories.map((c) => (
                     <div
                       key={c._id}
-                      onClick={() =>
-                        handleCategorySelect(c)
-                      }
+                      onClick={() => handleCategorySelect(c)}
                       className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
-                        categoryName === c.name
-                          ? "bg-blue-50 text-blue-700"
-                          : ""
+                        categoryName === c.name ? "bg-blue-50 text-blue-700" : ""
                       }`}
                     >
                       {c.name}
@@ -925,9 +1127,7 @@ export default function ProductEdit({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Brand
-              </label>
+              <label className="block text-sm font-medium mb-1">Brand</label>
               <input
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
@@ -937,9 +1137,7 @@ export default function ProductEdit({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Price
-                </label>
+                <label className="block text-sm font-medium mb-1">Price</label>
                 <input
                   type="number"
                   value={price}
@@ -948,9 +1146,7 @@ export default function ProductEdit({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Discount
-                </label>
+                <label className="block text-sm font-medium mb-1">Discount</label>
                 <input
                   type="number"
                   value={discount}
@@ -962,30 +1158,22 @@ export default function ProductEdit({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Status
-                </label>
+                <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   className="w-full px-3 py-1.5 border rounded-lg"
                 >
                   <option value="available">Available</option>
-                  <option value="out_of_stock">
-                    Out of Stock
-                  </option>
+                  <option value="out_of_stock">Out of Stock</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Quantity
-                </label>
+                <label className="block text-sm font-medium mb-1">Quantity</label>
                 <input
                   type="number"
                   value={stock}
-                  onChange={(e) =>
-                    setStock(e.target.value)
-                  }
+                  onChange={(e) => setStock(e.target.value)}
                   className="w-full px-3 py-1.5 border rounded-lg"
                 />
               </div>
@@ -997,10 +1185,7 @@ export default function ProductEdit({
             {/* Images */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Product Images{" "}
-                <span className="text-gray-500">
-                  (max {MAX_IMAGES})
-                </span>
+                Product Images <span className="text-gray-500">(max {MAX_IMAGES})</span>
               </label>
 
               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition">
@@ -1016,24 +1201,14 @@ export default function ProductEdit({
                   disabled={imageUrl.length >= MAX_IMAGES}
                 />
               </label>
-              {isUploading && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Uploading…
-                </p>
-              )}
+
+              {isUploading && <p className="text-xs text-gray-500 mt-1">Uploading…</p>}
 
               {!!imageUrl.length && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                   {imageUrl.map((url, idx) => (
-                    <div
-                      key={idx}
-                      className="relative group"
-                    >
-                      <img
-                        src={url}
-                        alt=""
-                        className="w-full h-28 object-cover rounded-lg"
-                      />
+                    <div key={idx} className="relative group">
+                      <img src={url} alt="" className="w-full h-28 object-cover rounded-lg" />
                       <button
                         type="button"
                         onClick={() => removeImage(idx)}
@@ -1050,9 +1225,7 @@ export default function ProductEdit({
             {/* Size only */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium">
-                  Sizes
-                </label>
+                <label className="block text-sm font-medium">Sizes</label>
                 <button
                   type="button"
                   onClick={addRow}
@@ -1063,15 +1236,10 @@ export default function ProductEdit({
               </div>
               <div className="space-y-2">
                 {sizeWeights.map((sw, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-1 gap-2"
-                  >
+                  <div key={i} className="grid grid-cols-1 gap-2">
                     <input
                       value={sw.size}
-                      onChange={(e) =>
-                        changeSize(i, e.target.value)
-                      }
+                      onChange={(e) => changeSize(i, e.target.value)}
                       placeholder="Size (e.g. S, M, L, XL)"
                       className="px-3 py-1.5 border rounded-lg"
                     />
@@ -1082,14 +1250,10 @@ export default function ProductEdit({
 
             {/* Colors */}
             <div className="relative">
-              <label className="block text-sm font-medium mb-1">
-                Colors
-              </label>
+              <label className="block text-sm font-medium mb-1">Colors</label>
               <div
                 className="w-full px-3 py-2 border rounded-lg cursor-pointer bg-white"
-                onClick={() =>
-                  setIsColorOpen((v) => !v)
-                }
+                onClick={() => setIsColorOpen((v) => !v)}
               >
                 {selectedColors.length ? (
                   <div className="flex flex-wrap gap-2">
@@ -1098,51 +1262,35 @@ export default function ProductEdit({
                         key={`${c}-${i}`}
                         className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs bg-gray-100"
                       >
-                        {!/^#/.test(c) && (
-                          <span>{c}</span>
-                        )}
-                        <span
-                          className="w-3 h-3 rounded-full border"
-                          style={{ background: c }}
-                        />
+                        {!/^#/.test(c) && <span>{c}</span>}
+                        <span className="w-3 h-3 rounded-full border" style={{ background: c }} />
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <span className="text-gray-500 text-sm">
-                    Select colors
-                  </span>
+                  <span className="text-gray-500 text-sm">Select colors</span>
                 )}
               </div>
+
               {isColorOpen && (
                 <div className="absolute z-10 w-full bg-white border rounded-lg mt-1 max-h-56 overflow-y-auto shadow">
                   {safeColors.map((clr) => {
                     const value = clr.name || clr.code;
-                    const active =
-                      selectedColors.includes(value);
+                    const active = selectedColors.includes(value);
                     return (
                       <div
                         key={clr._id || value}
-                        onClick={() =>
-                          toggleColor(value)
-                        }
+                        onClick={() => toggleColor(value)}
                         className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50 ${
                           active ? "bg-blue-50" : ""
                         }`}
                       >
-                        <span className="text-sm">
-                          {clr.name || clr.code}
-                        </span>
+                        <span className="text-sm">{clr.name || clr.code}</span>
                         <span
                           className={`w-5 h-5 rounded-full border ${
-                            active
-                              ? "ring ring-blue-400"
-                              : ""
+                            active ? "ring ring-blue-400" : ""
                           }`}
-                          style={{
-                            background:
-                              clr.code || clr.name,
-                          }}
+                          style={{ background: clr.code || clr.name }}
                         />
                       </div>
                     );
@@ -1155,27 +1303,19 @@ export default function ProductEdit({
           {/* Details */}
           <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Brief description
-              </label>
+              <label className="block text-sm font-medium mb-1">Brief description</label>
               <textarea
                 value={details}
-                onChange={(e) =>
-                  setDetails(e.target.value)
-                }
+                onChange={(e) => setDetails(e.target.value)}
                 rows="4"
                 className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Full description
-              </label>
+              <label className="block text-sm font-medium mb-1">Full description</label>
               <textarea
                 value={longDetails}
-                onChange={(e) =>
-                  setLongDetails(e.target.value)
-                }
+                onChange={(e) => setLongDetails(e.target.value)}
                 rows="4"
                 className="w-full px-3 py-2 border rounded-lg"
               />
