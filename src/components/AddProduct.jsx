@@ -15,12 +15,15 @@ const withBase = (path) => {
 
 const isNonEmpty = (v) => typeof v === "string" && v.trim().length > 0;
 
-const AddProduct = ({ isOpen, isClose, refetch }) => {
- 
-
+export default function AddProduct({ isOpen, isClose, refetch }) {
   // 🔥 Dropship system
-const [supplier, setSupplier] = useState("local");
-const [banggoProductId, setBanggoProductId] = useState("");
+  const [supplier, setSupplier] = useState("local");
+  const [banggoProductId, setBanggoProductId] = useState("");
+
+  // ✅ supplier local হলে banggo id clear
+  useEffect(() => {
+    if (supplier !== "banggomart") setBanggoProductId("");
+  }, [supplier]);
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -28,7 +31,7 @@ const [banggoProductId, setBanggoProductId] = useState("");
   const [imageUrl, setImageUrl] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // 🔥 এখন থেকে শুধু size রাখব
+  // 🔥 now only sizes
   const [sizeWeights, setSizeWeights] = useState([{ size: "" }]);
 
   const [selectedColors, setSelectedColors] = useState([]);
@@ -38,13 +41,12 @@ const [banggoProductId, setBanggoProductId] = useState("");
 
   // ✅ Delivery system
   const USE_FREE_DELIVERY_ZONES = true;
-  const [deliveryType, setDeliveryType] = useState("cash_on_delivery"); // default COD
-  const [deliveryZone, setDeliveryZone] = useState("inside_dhaka"); // only when free_delivery
+  const [deliveryType, setDeliveryType] = useState("cash_on_delivery");
+  const [deliveryZone, setDeliveryZone] = useState("inside_dhaka");
 
   const dropdownRef = useRef(null);
 
   // ---------- Data fetching ----------
-
   const {
     data: categories = [],
     isLoading: categoriesLoading,
@@ -108,6 +110,7 @@ const [banggoProductId, setBanggoProductId] = useState("");
   const safeCategories = useMemo(() => categories ?? [], [categories]);
   const safeColors = useMemo(() => colorOptions ?? [], [colorOptions]);
 
+  // close category dropdown on outside click
   useEffect(() => {
     if (!isDropdownOpen) return;
     const onDocClick = (e) => {
@@ -119,13 +122,10 @@ const [banggoProductId, setBanggoProductId] = useState("");
   }, [isDropdownOpen]);
 
   useEffect(() => {
-    if (deliveryType !== "free_delivery") {
-      setDeliveryZone("inside_dhaka");
-    }
+    if (deliveryType !== "free_delivery") setDeliveryZone("inside_dhaka");
   }, [deliveryType]);
 
   // ---------- UI handlers ----------
-
   const handleColorSelect = (colorName) => {
     setSelectedColors((prev) =>
       prev.includes(colorName)
@@ -147,6 +147,11 @@ const [banggoProductId, setBanggoProductId] = useState("");
     setIsDropdownOpen((prev) => !prev);
   };
 
+  const parseNumber = (v, def = 0) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : def;
+  };
+
   const handleImageUpload = async (e) => {
     const files = e.target.files;
     if (!files?.length) return;
@@ -161,6 +166,7 @@ const [banggoProductId, setBanggoProductId] = useState("");
       const uploads = Array.from(files).map(async (file) => {
         const formData = new FormData();
         formData.append("image", file);
+
         const resp = await fetch(
           "https://api.imgbb.com/1/upload?key=31cbdc0f8e62b64424c515941a8bfd73",
           { method: "POST", body: formData }
@@ -190,7 +196,8 @@ const [banggoProductId, setBanggoProductId] = useState("");
     }
   };
 
-  const removeImage = (idx) => setImageUrl((prev) => prev.filter((_, i) => i !== idx));
+  const removeImage = (idx) =>
+    setImageUrl((prev) => prev.filter((_, i) => i !== idx));
 
   const handleSizeChange = (index, value) => {
     setSizeWeights((prev) => {
@@ -200,15 +207,10 @@ const [banggoProductId, setBanggoProductId] = useState("");
     });
   };
 
-  const handleAddSizeRow = () => setSizeWeights((prev) => [...prev, { size: "" }]);
-
-  const parseNumber = (v, def = 0) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : def;
-  };
+  const handleAddSizeRow = () =>
+    setSizeWeights((prev) => [...prev, { size: "" }]);
 
   // ---------- Submit ----------
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -216,50 +218,51 @@ const [banggoProductId, setBanggoProductId] = useState("");
     const productName = form.productName.value.trim();
     const brand = form.brand.value.trim();
 
-    // ✅ 3 prices
-    const buyPrice = parseNumber(form.buyPrice.value, 0); // purchase/buying
+    // ✅ prices
+    const buyPrice = parseNumber(form.buyPrice.value, 0);
     const regularPrice = parseNumber(form.regularPrice.value, 0);
-    const price = parseNumber(form.price.value, 0); // ✅ Sell Price (existing backend key)
+    const price = parseNumber(form.price.value, 0); // sell price
 
     const status = form.status.value;
     const stock = parseNumber(form.stock.value, 0);
     const sku = (form.sku?.value ?? "").trim();
-    const details = form.details.value.trim();
-    const longDetails = form.longDetails.value.trim();
+
+    // ✅ Clean text (preserve bullets with newline)
+    const details = form.details.value
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n");
+
+    const longDetails = form.longDetails.value
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .join("\n");
+
     const categoryIds = selectedCategories.map((c) => c._id);
     const primaryCategory = selectedCategories[0] || null;
 
-    // validations
+    // ✅ validations
     if (!isNonEmpty(productName)) return toast.warn("Product name is required");
-    if (!selectedCategories.length) return toast.warn("Please select at least one category");
+    if (!selectedCategories.length)
+      return toast.warn("Please select at least one category");
     if (!imageUrl.length) return toast.warn("Please upload at least 1 image");
 
     if (buyPrice < 0) return toast.warn("Buying price cannot be negative");
-    if (regularPrice <= 0) return toast.warn("Regular price must be greater than 0");
+    if (regularPrice <= 0)
+      return toast.warn("Regular price must be greater than 0");
     if (price <= 0) return toast.warn("Sell price must be greater than 0");
 
     if (!isNonEmpty(sku)) return toast.warn("SKU is required");
     if (!isNonEmpty(details)) return toast.warn("Product info is required");
-    if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
+    if (!isNonEmpty(longDetails))
+      return toast.warn("Additional info is required");
     if (stock < 0) return toast.warn("Stock cannot be negative");
-// validations
-if (!isNonEmpty(productName)) return toast.warn("Product name is required");
-if (!selectedCategories.length) return toast.warn("Please select at least one category");
-if (!imageUrl.length) return toast.warn("Please upload at least 1 image");
 
-if (buyPrice < 0) return toast.warn("Buying price cannot be negative");
-if (regularPrice <= 0) return toast.warn("Regular price must be greater than 0");
-if (price <= 0) return toast.warn("Sell price must be greater than 0");
-
-if (!isNonEmpty(sku)) return toast.warn("SKU is required");
-if (!isNonEmpty(details)) return toast.warn("Product info is required");
-if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
-if (stock < 0) return toast.warn("Stock cannot be negative");
-
-// ✅ এখানে বসবে (payload এর আগে)
-if (supplier === "banggomart" && !banggoProductId) {
-  return toast.warn("Banggomart Product ID is required");
-}
+    if (supplier === "banggomart" && !String(banggoProductId || "").trim()) {
+      return toast.warn("Banggomart Product ID is required");
+    }
 
     const sizeWeightArray = sizeWeights
       .map((sw) => ({ size: String(sw.size || "").trim() }))
@@ -282,10 +285,9 @@ if (supplier === "banggomart" && !banggoProductId) {
       productImage: imageUrl,
       brand,
 
-      // ✅ prices
       buyPrice,
       regularPrice,
-      price, // ✅ Sell Price (old field)
+      price,
 
       delivery,
 
@@ -294,13 +296,13 @@ if (supplier === "banggomart" && !banggoProductId) {
       sku,
       sizeWeight: sizeWeightArray,
       color: selectedColors,
+
       details,
       longDetails,
-        // 🔥 ADD THESE
-  supplier,
-  banggoProductId: supplier === "banggomart"
-    ? Number(banggoProductId)
-    : null,
+
+      supplier,
+      banggoProductId:
+        supplier === "banggomart" ? Number(banggoProductId) : null,
     };
 
     setIsSaving(true);
@@ -318,7 +320,8 @@ if (supplier === "banggomart" && !banggoProductId) {
           const data = await resp.json();
           if (data?.errors) {
             const firstKey = Object.keys(data.errors)[0];
-            message = data.errors[firstKey]?.message || data?.message || message;
+            message =
+              data.errors[firstKey]?.message || data?.message || message;
           } else if (data?.message) {
             message = data.message;
           }
@@ -339,9 +342,9 @@ if (supplier === "banggomart" && !banggoProductId) {
 
       setDeliveryType("cash_on_delivery");
       setDeliveryZone("inside_dhaka");
-      // ✅ এখানেই বসবে
-setSupplier("local");
-setBanggoProductId("");
+
+      setSupplier("local");
+      setBanggoProductId("");
     } catch (err) {
       console.error(err);
       toast.error(err?.message || "Failed to add product.");
@@ -350,6 +353,7 @@ setBanggoProductId("");
     }
   };
 
+  // ---------- Loading / errors ----------
   if (categoriesLoading || subcategoriesLoading || colorsLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -358,10 +362,15 @@ setBanggoProductId("");
     );
   }
 
-  if (categoriesError) return <div>Error loading categories: {categoriesError.message}</div>;
-  if (subcategoriesError) return <div>Error loading subcategories: {subcategoriesError.message}</div>;
+  if (categoriesError)
+    return <div>Error loading categories: {categoriesError.message}</div>;
+  if (subcategoriesError)
+    return <div>Error loading subcategories: {subcategoriesError.message}</div>;
   if (colorError) return <div>Error loading colors: {colorError.message}</div>;
- if (!isOpen) return null;
+
+  if (!isOpen) return null;
+
+  // ---------- UI ----------
   return (
     <div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -374,7 +383,11 @@ setBanggoProductId("");
               </span>
               <h2 className="text-lg font-semibold">Add Product</h2>
             </div>
-            <button onClick={isClose} className="p-2 rounded-full hover:bg-gray-100" aria-label="Close">
+            <button
+              onClick={isClose}
+              className="p-2 rounded-full hover:bg-gray-100"
+              aria-label="Close"
+            >
               <FiX />
             </button>
           </div>
@@ -385,7 +398,9 @@ setBanggoProductId("");
             <div className="space-y-4">
               {/* Product Name */}
               <div>
-                <label className="block text-sm font-medium mb-1">Product Name</label>
+                <label className="block text-sm font-medium mb-1">
+                  Product Name
+                </label>
                 <input
                   name="productName"
                   type="text"
@@ -403,11 +418,16 @@ setBanggoProductId("");
                   onClick={handleDropdownToggle}
                   className="w-full inline-flex items-center justify-between px-3 py-2 rounded-lg border border-gray-300 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <span className={`truncate ${selectedCategories.length ? "text-gray-900" : "text-gray-400"}`}>
+                  <span
+                    className={`truncate ${
+                      selectedCategories.length ? "text-gray-900" : "text-gray-400"
+                    }`}
+                  >
                     {selectedCategories.length
                       ? selectedCategories.map((c) => c.name).join(", ")
                       : "Select categories"}
                   </span>
+
                   <FaChevronDown
                     className={`ml-2 h-4 w-4 text-gray-500 transition-transform duration-200 ${
                       isDropdownOpen ? "rotate-180" : ""
@@ -465,52 +485,49 @@ setBanggoProductId("");
                 <input
                   name="brand"
                   type="text"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-
-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Apple"
                 />
               </div>
 
-{/* Supplier */}
-<div>
-  <label className="block text-sm font-medium mb-1">Supplier</label>
-  <select
-    value={supplier}
-    onChange={(e) => setSupplier(e.target.value)}
-    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-  >
-    <option value="local">Local</option>
-    <option value="banggomart">Banggomart (Dropship)</option>
-  </select>
-</div>
+              {/* Supplier */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Supplier</label>
+                <select
+                  value={supplier}
+                  onChange={(e) => setSupplier(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="local">Local</option>
+                  <option value="banggomart">Banggomart (Dropship)</option>
+                </select>
+              </div>
 
-{/* Banggomart Product ID (Only if banggomart) */}
-{supplier === "banggomart" && (
-  <div>
-    <label className="block text-sm font-medium mb-1">
-      Banggomart Product ID
-    </label>
-    <input
-      type="number"
-      value={banggoProductId}
-      onChange={(e) => setBanggoProductId(e.target.value)}
-      required
-      className="w-full px-3 py-2 rounded-lg border border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-      placeholder="e.g. 33"
-    />
-    <p className="text-xs text-gray-500 mt-1">
-      Enter Banggomart Product ID for dropshipping
-    </p>
-  </div>
-)}
+              {/* Banggomart ID */}
+              {supplier === "banggomart" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Banggomart Product ID
+                  </label>
+                  <input
+                    type="number"
+                    value={banggoProductId}
+                    onChange={(e) => setBanggoProductId(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-lg border border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="e.g. 33"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter Banggomart Product ID for dropshipping
+                  </p>
+                </div>
+              )}
 
-
-
-              {/* ✅ 3 Prices (Sell price keeps old name="price") */}
+              {/* Prices */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                   Buying Price
+                    Buying Price
                   </label>
                   <input
                     name="buyPrice"
@@ -542,7 +559,7 @@ setBanggoProductId("");
                     Sell Price
                   </label>
                   <input
-                    name="price" // ✅ আপনার বর্তমান price field = sell price
+                    name="price"
                     type="number"
                     step="0.01"
                     min="0"
@@ -612,6 +629,7 @@ setBanggoProductId("");
                     <option value="out_of_stock">Out of Stock</option>
                   </select>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Quantity</label>
                   <input
@@ -622,6 +640,7 @@ setBanggoProductId("");
                     placeholder="Optional"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">SKU</label>
                   <input
@@ -695,6 +714,7 @@ setBanggoProductId("");
                     + Add Row
                   </button>
                 </div>
+
                 <div className="space-y-2">
                   {sizeWeights.map((sw, i) => (
                     <div key={i} className="grid grid-cols-1 gap-2">
@@ -770,24 +790,31 @@ setBanggoProductId("");
             {/* Details */}
             <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Product Info</label>
+                <label className="block text-sm font-medium mb-1">Short Product Info</label>
                 <textarea
                   name="details"
                   rows="4"
                   required
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief description"
+                  placeholder="Brief description (you can use multiple lines)"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Additional Info</label>
+                <label className="block text-sm font-medium mb-1">
+                  Full Description{" "}
+                  <span className="text-xs text-gray-500">(one point per line)</span>
+                </label>
                 <textarea
                   name="longDetails"
-                  rows="4"
+                  rows="6"
                   required
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Full description"
+                  placeholder={`Breast-shaped design promotes natural latch-on\nComfort petals provide softness and flexibility\nTwin anti-colic valves help minimize colic\nBPA-free silicone, easy to sterilize\nPack includes: 2 | Age: 0m+`}
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Tip: Press Enter for a new bullet point.
+                </p>
               </div>
             </div>
 
@@ -815,6 +842,4 @@ setBanggoProductId("");
       <ToastContainer position="top-center" autoClose={2000} hideProgressBar />
     </div>
   );
-};
-
-export default AddProduct;
+}

@@ -15,6 +15,7 @@ import axios from "axios";
 import DealsOffer from "../../../../components/DealsOffer";
 import { addRecentlyViewed } from "../../../../utils/recentlyViewed";
 import ProductReviews from "../../../../components/reviews/ProductReviews";
+import { splitToBullets } from "../../../../utils/splitToBullets";
 
 /* ---------- helpers ---------- */
 const money = (n) => `৳ ${Number(n || 0).toLocaleString()}`;
@@ -520,84 +521,85 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="mt-8 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="flex flex-wrap gap-2 p-3 sm:p-4 border-b border-slate-100 bg-slate-50">
-              {[
-                { key: "description", label: "Description" },
-                { key: "additional", label: "Additional info" },
-                // { key: "vendor", label: "Vendor" },
-                { key: "reviews", label: "Reviews" },
-              ].map((t) => {
-                const active = activeTab === t.key;
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key)}
-                    className={`px-4 py-2 rounded text-sm font-semibold transition
-                      ${
-                        active
-                          ? "bg-slate-900 text-white"
-                          : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
-                      }`}
-                  >
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
+    {/* Tabs */}
+<div className="mt-8 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+  <div className="flex flex-wrap gap-2 p-3 sm:p-4 border-b border-slate-100 bg-slate-50">
+    {[
+      { key: "description", label: "Description" },
+      { key: "additional", label: "Product Specifications" },
+      { key: "reviews", label: "Reviews" },
+    ].map((t) => {
+      const active = activeTab === t.key;
+      return (
+        <button
+          key={t.key}
+          onClick={() => setActiveTab(t.key)}
+          className={`px-4 py-2 rounded text-sm font-semibold transition
+            ${
+              active
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+            }`}
+        >
+          {t.label}
+        </button>
+      );
+    })}
+  </div>
 
-            <div className="p-4 sm:p-6 text-slate-700 text-sm sm:text-base leading-7">
-              {activeTab === "description" && (
-                <>
-                  {longDetails ? (
-                    <p className="mb-4">{longDetails}</p>
-                  ) : (
-                    <p className="mb-4 text-slate-500">
-                      No additional description.
-                    </p>
-                  )}
-                </>
-              )}
+  <div className="p-4 sm:p-6 text-slate-700 text-sm sm:text-base leading-7">
+    {activeTab === "description" && (
+      <>
+        {longDetails ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <h4 className="mb-3 text-sm font-semibold text-slate-900">
+              Product Description
+            </h4>
 
-              {activeTab === "additional" &&
-                (specs.length ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-[420px] w-full border border-slate-200 rounded-xl overflow-hidden">
-                      <tbody>
-                        {specs.map(([label, value], i) => (
-                          <tr
-                            key={i}
-                            className="border-b last:border-0 border-slate-200"
-                          >
-                            <th className="w-48 text-left bg-slate-50 px-3 py-3 font-semibold text-slate-700">
-                              {label}
-                            </th>
-                            <td className="px-3 py-3 text-slate-800">
-                              {Array.isArray(value) ? value : value}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-slate-500">No additional information.</p>
-                ))}
-
-              {/* {activeTab === "vendor" && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-slate-900">
-                    Vendor Information
-                  </h4>
-                  <p className="mb-2">Sold By: shoukhinshop</p>
-                  <p className="mb-2">Country: Bangladesh</p>
-                  <p className="mb-2">Contact: info@shoukhinshop.com</p>
-                </div>
-              )} */}
-              {activeTab === "reviews" && <ProductReviews productId={_id} />}
-            </div>
+            {/* ✅ bullet breakdown */}
+            <ul className="space-y-2">
+              {splitToBullets(longDetails).map((b, i) => (
+                <li
+                  key={i}
+                  className="flex gap-2 text-[15px] leading-6 text-slate-700"
+                >
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-slate-400" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+        ) : (
+          <p className="mb-4 text-slate-500">No description available.</p>
+        )}
+      </>
+    )}
+
+    {activeTab === "additional" &&
+      (specs.length ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-[420px] w-full border border-slate-200 rounded-xl overflow-hidden">
+            <tbody>
+              {specs.map(([label, value], i) => (
+                <tr key={i} className="border-b last:border-0 border-slate-200">
+                  <th className="w-48 text-left bg-slate-50 px-3 py-3 font-semibold text-slate-700">
+                    {label}
+                  </th>
+                  <td className="px-3 py-3 text-slate-800">
+                    {Array.isArray(value) ? value : value}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-slate-500">No additional information.</p>
+      ))}
+
+    {activeTab === "reviews" && <ProductReviews productId={_id} />}
+  </div>
+</div>
         </div>
 
         {/* Mobile sticky action bar */}
