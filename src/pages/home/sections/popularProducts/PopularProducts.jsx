@@ -164,8 +164,8 @@ const PopularProduct = () => {
 </div>
 
 
-      <section className="max-w-7xl mx-auto px-3 sm:px-4 pb-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+      <section className="max-w-full mx-auto px-3 md:px-4 pb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 ">
           {products.slice(0, visibleProducts).map((product) => {
             const price = Number(product?.price || 0);
             const regularPrice = Number(product?.regularPrice || 0);
@@ -202,7 +202,7 @@ const PopularProduct = () => {
             return (
              <div
   key={product._id}
-  className="group relative rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
+  className="group relative rounded-2xl bg-white border border-[#F77426] shadow-sm hover:shadow-xl transition-all duration-300"
 >
   {/* Badge */}
   <div
@@ -295,7 +295,7 @@ const PopularProduct = () => {
     <div className="mt-3 flex items-center justify-between gap-3">
       {/* Price */}
       <div className="flex items-end gap-2">
-        <span className="text-lg font-extrabold text-rose-500 leading-none">
+        <span className="text-base font-extrabold text-rose-500 leading-none">
           ৳{formatMoney(price)}
         </span>
 
@@ -322,11 +322,11 @@ const PopularProduct = () => {
           }
           handleAddToCart(product._id);
         }}
-        className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all
+        className={`w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all
           ${
             isOutOfStock
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-sky-500 text-white hover:scale-105 hover:bg-sky-600"
+              : "bg-[#F77426] text-white hover:scale-105 hover:bg-sky-600"
           }`}
         title="Add to cart"
       >

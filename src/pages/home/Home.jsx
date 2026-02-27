@@ -17,6 +17,10 @@ import HomeMarqueeBar from "../../../src/components/ui/HomeMarqueeBar";
 import RecentlyViewed from "../../components/RecentlyViewed";
 import PopularProduct from "./sections/popularProducts/PopularProducts";
 import GifBannerSection from "../../components/GifBannerSection";
+import DailyBestSeller from "./sections/dailyProducts/DailySellerSldier";
+import FourBanner from "../../components/FourBanner";
+import { Ban } from "lucide-react";
+import BannerSection from "../../components/BannerSection";
 
 const Home = () => {
   return (
@@ -38,22 +42,21 @@ const Home = () => {
       {/* <MarqueeRtl /> */}
       {/* <HomeMarqueeBar /> */}
       <ProductCategory />
+      <BannerSection />
+   
       <PopularProduct />
-<GifBannerSection
-  imageUrl="https://img.lazcdn.com/us/domino/356d6a86-5354-47c0-8019-6d0dc2c682e3_BD-1188-140.gif_2200x2200q80.gif_.webp"
-  to="/all-product"
-  alt="Sale Banner"
-/>
 
    
 
       <FeaturesBar />
+   
+       <FourBanner />
+         <DailyBestSeller />
       <div className="mt-7">
         <OurBrands />
       </div>
     
-      <RecentlyViewed />
-      {/* <DailyBestSeller /> */}
+         <RecentlyViewed />
     </div>
   );
 };

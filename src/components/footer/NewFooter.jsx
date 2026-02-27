@@ -39,15 +39,7 @@ export default function Footer() {
             <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
           </ul>
 
-          {/* Payment methods */}
-          <div className="flex gap-2 mt-6 flex-wrap">
-            <FaCcAmex size={40} />
-            <FaCcApplePay size={40} />
-            <FaGooglePay size={40} />
-            <FaCcMastercard size={40} />
-            <FaCcPaypal size={40} />
-            <FaCcVisa size={40} />
-          </div>
+ 
         </div>
 
         {/* MIDDLE column */}

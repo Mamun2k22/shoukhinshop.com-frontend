@@ -1,157 +1,268 @@
-/* =========================
-   HERO WRAPPER (padding outside)
-========================= */
+/* ---------- ROOT WRAP ---------- */
 .hero-wrap {
-  width: 100%;
+  padding: 18px 24px;
 }
 
-/* =========================
-   HERO CONTAINER
-========================= */
-.hero-full {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
 
-  /* ✅ smooth responsive height */
-  height: clamp(220px, 32vw, 450px);
-
-  /* optional */
-  border-radius: 14px;
-
-  transition: height 0.3s ease;
+/* IMPORTANT: prevent slick/children from overflowing grid */
+.hero-left,
+.hero-middle,
+.hero-right {
+  min-width: 0;
 }
 
-/* =========================
-   SLICK INTERNAL HEIGHT FIX
-========================= */
-.hero-full .slick-slider,
-.hero-full .slick-list,
-.hero-full .slick-track {
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .hero-right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-wrap {
+    padding: 14px;
+  }
+  
+  .hero-grid {
+  grid-template-columns: 220px minmax(0, 1fr) 340px;
+}
+  .hero-left {
+    order: 2;
+  }
+  .hero-middle {
+    order: 1;
+  }
+  .hero-right {
+    order: 3;
+    display: block;
+  }
+}
+
+/* ---------- LEFT: CATEGORY BOX ---------- */
+.hero-cat-box {
+  background: #fff;
+  border: 1px solid #f0c3a9;
+  border-radius: 12px;
+  padding: 10px;
   height: 100%;
 }
 
-/* slick slider also relative so arrows position correctly */
-.hero-full .slick-slider {
+.hero-cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #2b2b2b;
+  transition: background 0.15s ease;
+}
+
+.hero-cat-item:hover {
+  background: #f3fbf6;
+}
+
+.hero-cat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #f3fbf6;
+  flex: 0 0 28px;
+  overflow: hidden;
+}
+
+.hero-cat-icon img {
+  width: 18px !important;
+  height: 18px !important;
+  object-fit: contain;
+  display: block;
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #36b37e;
+}
+
+.hero-cat-name {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+
+.hero-show-more {
+  border: none;
+  background: transparent;
+  color: #199a5b;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- MIDDLE: SLIDER ---------- */
+/* Keep slider height stable so it doesn't jump or push everything down */
+.hero-full {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  height: 100%;
+  min-height: 390px;
   position: relative;
 }
 
+/* slick fixes */
+.hero-full .slick-slider,
+.hero-full .slick-list,
+.hero-full .slick-track,
 .hero-full .slick-slide > div {
   height: 100%;
 }
 
-/* =========================
-   SLIDE + LINK FULL HEIGHT
-========================= */
 .hero-slide {
-  position: relative;
   height: 100%;
 }
 
-.hero-slide a {
-  display: block;
-  height: 100%;
-}
-
-/* =========================
-   IMAGE
-========================= */
 .hero-img {
-  width: 100%;
-  height: 100% !important;
-  object-fit: cover;
-  object-position: center bottom; /* ✅ bottom part visible more */
+  width: 100% !important;
+  height: 390px !important; /* lock height like screenshot */
   display: block;
+  object-fit: cover;
 }
 
-/* =========================
-   DOTS
-========================= */
-.hero-full .slick-dots {
-  bottom: 16px;
+/* Mobile slider height */
+@media (max-width: 768px) {
+  .hero-full {
+    min-height: 240px;
+  }
+  .hero-img {
+    height: 240px !important;
+  }
 }
 
-.hero-full .slick-dots li button:before {
-  font-size: 9px;
-  opacity: 0.5;
-  color: #ffffff;
-}
-
-.hero-full .slick-dots li.slick-active button:before {
-  opacity: 1;
-  color: #ffffff;
-}
-
-/* =========================
-   CUSTOM ARROWS
-========================= */
+/* arrows */
 .hero-arrow {
   position: absolute;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 50 !important;
-
-  width: 40px;
-  height: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  color: #fff;
-  background: rgba(0, 0, 0, 0.3);
-
-  display: inline-flex;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
-
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.hero-arrow:hover {
-  background: rgba(0, 0, 0, 0.5);
-  transform: translateY(-50%) scale(1.05) !important;
+  z-index: 10;
+  font-size: 22px;
 }
 
 .hero-arrow--prev {
-  left: 16px;
+  left: 12px;
 }
 
 .hero-arrow--next {
-  right: 16px;
+  right: 12px;
 }
 
-/* =========================
-   IF SLICK DEFAULT ARROWS CONFLICT (safe)
-========================= */
-.hero-full .slick-prev,
-.hero-full .slick-next {
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 50 !important;
+/* dots */
+.hero-full .slick-dots {
+  bottom: 14px;
 }
 
-/* =========================
-   MOBILE TWEAKS
-========================= */
-@media (max-width: 768px) {
-  .hero-arrow {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
-  }
-
-  .hero-arrow--prev {
-    left: 10px;
-  }
-
-  .hero-arrow--next {
-    right: 10px;
-  }
-
-  .hero-full .slick-dots {
-    bottom: 10px;
-  }
+/* ---------- RIGHT: SIDE BANNERS ---------- */
+.hero-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
 }
- 
+
+/* make each banner fixed height like screenshot */
+.hero-side-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 187px;
+  padding: 18px;
+  text-decoration: none;
+  border: 1px solid #eef2f0;
+}
+
+/* first greenish */
+.hero-side-card:nth-child(1) {
+  background: #e6f0c9;
+}
+
+/* second beige */
+.hero-side-card:nth-child(2) {
+  background: #efe9dc;
+}
+
+.hero-side-text {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hero-side-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  color: #1f2d3d;
+  font-weight: 800;
+}
+
+.hero-side-subtitle {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #1f2d3d;
+  font-weight: 800;
+}
+
+.hero-side-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #2bb673;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-side-imgWrap {
+  width: 40%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.hero-side-imgWrap img {
+  width: 100% !important;
+  max-width: 180px;
+  height: auto !important;
+  object-fit: contain;
+  display: block;
+}
