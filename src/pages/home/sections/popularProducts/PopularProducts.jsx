@@ -145,20 +145,20 @@ const PopularProduct = () => {
 <div className="bg-white pt-16 pb-8">
   <div className="max-w-7xl mx-auto px-4 text-center">
     {/* small label */}
-    <p className="text-xs font-extrabold tracking-[0.35em] text-sky-500 uppercase">
+    <p className="text-xs font-extrabold tracking-[0.35em] text-pink-500 uppercase">
       FEATURED
     </p>
 
     {/* big title (like template) */}
-    <h2 className="mt-3 text-3xl md:text-4xl font-extrabold text-gray-900">
-      Our ALL <span className="text-sky-500">Items</span>
+    <h2 className="mt-3 text-3xl md:text-4xl font-extrabold text-pink-600">
+      Our ALL <span className="text-pink-500">Items</span>
     </h2>
 
     {/* subtle separator line */}
     <div className="mt-6 flex items-center justify-center gap-3">
-      <span className="h-[2px] w-10 bg-sky-500/70 rounded-full" />
-      <span className="h-2 w-2 rounded-full bg-sky-500" />
-      <span className="h-[2px] w-10 bg-sky-500/20 rounded-full" />
+      <span className="h-[2px] w-10 bg-pink-500/70 rounded-full" />
+      <span className="h-2 w-2 rounded-full bg-pink-500" />
+      <span className="h-[2px] w-10 bg-pink-500/20 rounded-full" />
     </div>
   </div>
 </div>
@@ -233,7 +233,7 @@ const PopularProduct = () => {
           e.preventDefault();
           navigate(`/product-details/${product._id}`);
         }}
-        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        className="w-10 h-10 rounded-full bg-[#C82A5E] text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
         title="Quick View"
       >
         <FiEye />
@@ -251,7 +251,7 @@ const PopularProduct = () => {
             showConfirmButton: false,
           });
         }}
-        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        className="w-10 h-10 rounded-full bg-[#C82A5E] text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
         title="Wishlist"
       >
         <FiHeart />
@@ -269,7 +269,7 @@ const PopularProduct = () => {
             showConfirmButton: false,
           });
         }}
-        className="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
+        className="w-10 h-10 rounded-full bg-[#C82A5E] text-white flex items-center justify-center shadow-lg hover:scale-105 transition"
         title="Compare"
       >
         <FiShuffle />
@@ -345,7 +345,7 @@ const PopularProduct = () => {
           <div className="mt-12 text-center">
             <button
               onClick={showMoreProducts}
-              className="px-10 py-3 bg-white border border-sky-500 text-sky-600 font-bold rounded-full hover:bg-sky-500 hover:text-white transition-all duration-300 shadow-sm"
+              className="px-8 py-2 bg-white border border-[#C82A5E] text-[#e0186b] font-bold rounded-full hover:bg-[#bd1d52] hover:text-white transition-all duration-300 shadow-sm"
             >
               আরও দেখুন
             </button>

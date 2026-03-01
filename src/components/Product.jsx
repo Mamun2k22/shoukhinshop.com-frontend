@@ -6,11 +6,12 @@ import {
 } from "react-icons/fa";
 import AddProduct from "./AddProduct";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ToastContainer } from "react-toastify";
+// import { ToastContainer } from "react-toastify";
 import useLoading from "../hooks/useLoading";
 import Loader from "../Spinner/Loader";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+
 
 const ProductEdit = lazy(() => import("./ProductEdit"));
 
@@ -71,28 +72,27 @@ export default function Product() {
     data,
     isLoading,
     isFetching,
+    refetch,
     error,
     isPreviousData,
   } = useQuery({
     queryKey: ["products", { page, limit, q: debouncedQ }],
     queryFn: fetchProducts,
     keepPreviousData: true,
-    staleTime: 10000,
+    staleTime: 10_000,
     placeholderData: (prev) => prev,
   });
 
-  const items = data?.items || [];
-  const total = data?.total || 0;
+  const items      = data?.items || [];
+  const total      = data?.total || 0;
   const totalPages = data?.totalPages || 1;
 
-  // পেজ অ্যাডজাস্টমেন্ট ইফেক্ট
+  // যদি কোনো পেজে শেষ আইটেমটা ডিলিট হয়, আগের পেজে নেমে যাও (safer)
   useEffect(() => {
     if (!isFetching && page > 1 && items.length === 0 && total > 0) {
-      // বর্তমান পেজ খালি হলে সঠিক পেজে নিয়ে যান
-      const newPage = Math.ceil(total / limit);
-      setPage(Math.max(1, newPage));
+      setPage(p => p - 1);
     }
-  }, [items.length, isFetching, page, total, limit]);
+  }, [items.length, isFetching, page, total]);
 
   const handleEditClick = (product) => {
     setSelectedProduct(product);
@@ -118,14 +118,13 @@ export default function Product() {
       heightAuto: false,
     }).then((r) => r.isConfirmed);
 
-  // --- Delete mutation (optimistic update)
+  // --- Delete mutation (optimistic update on exact key)
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       const response = await fetch(
         `${import.meta.env.VITE_APP_SERVER_URL}api/products/${id}`,
         { method: "DELETE", credentials: "include" }
       );
-      
       if (!response.ok) {
         let msg = "Failed to delete the product";
         try {
@@ -134,91 +133,55 @@ export default function Product() {
         } catch {}
         throw new Error(msg);
       }
-      
       return await response.json();
     },
 
     onMutate: async (id) => {
       showLoader();
 
-      // বর্তমান কুয়েরি কী
+      // exact key: current table view
       const currentKey = ["products", { page, limit, q: debouncedQ }];
-      
-      // চলমান কুয়েরিগুলো ক্যান্সেল করুন
       await queryClient.cancelQueries({ queryKey: currentKey });
 
-      // আগের ডাটা সংরক্ষণ করুন
-      const previousData = queryClient.getQueryData(currentKey);
+      const previous = queryClient.getQueryData(currentKey);
 
-      if (previousData?.items) {
-        // ফিল্টার করে ডিলিট করা আইটেম বাদ দিন
-        const filteredItems = previousData.items.filter((p) => p._id !== id);
-        const newTotal = previousData.total - 1;
-        const newTotalPages = Math.ceil(newTotal / limit);
-
-        // অপটিমিস্টিক আপডেট
+      if (previous?.items) {
+        const nextTotal = Math.max(0, (previous.total ?? 0) - 1);
+        const nextTotalPages = Math.max(1, Math.ceil(nextTotal / limit));
         queryClient.setQueryData(currentKey, {
-          ...previousData,
-          items: filteredItems,
-          total: newTotal,
-          totalPages: newTotalPages > 0 ? newTotalPages : 1,
+          ...previous,
+          items: previous.items.filter((p) => p._id !== id),
+          total: nextTotal,
+          totalPages: nextTotalPages,
         });
-
-        // যদি বর্তমান পেজ খালি হয়ে যায় এবং পেজ ১-এর বেশি হয়, তাহলে পেজ কমিয়ে দিন
-        if (filteredItems.length === 0 && page > 1) {
-          setPage(page - 1);
-        }
       }
 
-      return { previousData, currentKey };
+      // (optional) অন্য variants-এও প্রয়োগ
+      const snapshotsAll = queryClient.getQueriesData({ queryKey: ["products"] });
+      snapshotsAll.forEach(([key, old]) => {
+        if (!old?.items) return;
+        queryClient.setQueryData(key, {
+          ...old,
+          items: old.items.filter((p) => p._id !== id),
+          total: Math.max(0, (old.total || 0) - 1),
+        });
+      });
+
+      return { previous, currentKey, snapshotsAll };
     },
 
-    onError: (err, id, context) => {
-      // এরর হলে আগের ডাটা রিস্টোর করুন
-      if (context?.previousData && context?.currentKey) {
-        queryClient.setQueryData(context.currentKey, context.previousData);
+    onError: (err, _id, ctx) => {
+      if (ctx?.currentKey && ctx?.previous) {
+        queryClient.setQueryData(ctx.currentKey, ctx.previous);
       }
-      
-      Swal.fire({ 
-        icon: "error", 
-        title: err?.message || "Delete failed", 
-        timer: 1500, 
-        showConfirmButton: false 
-      });
+      ctx?.snapshotsAll?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      Swal.fire({ icon: "error", title: err?.message || "Delete failed", timer: 1500, showConfirmButton: false });
     },
 
-    onSuccess: (data, id, context) => {
-      // সফল ডিলিট - ইউজারকে দেখান
-      Swal.fire({
-        icon: "success",
-        title: "Product deleted successfully",
-        timer: 1500,
-        showConfirmButton: false
-      });
-    },
-
-    onSettled: (data, error, variables, context) => {
+    onSettled: () => {
       hideLoader();
-      
-      // বর্তমান কুয়েরি শুধু ব্যাকগ্রাউন্ডে রিফ্রেশ করুন
-      if (context?.currentKey) {
-        queryClient.invalidateQueries({ 
-          queryKey: context.currentKey,
-          refetchType: 'active'
-        });
-      }
-      
-      // ১ সেকেন্ড পর বাকি কুয়েরিগুলো ইনভ্যালিডেট করুন
-      setTimeout(() => {
-        queryClient.invalidateQueries({ 
-          queryKey: ["products"],
-          predicate: (query) => {
-            // বর্তমান কুয়েরি বাদে বাকিগুলো ইনভ্যালিডেট করুন
-            return JSON.stringify(query.queryKey) !== JSON.stringify(context?.currentKey);
-          },
-          refetchType: 'inactive'
-        });
-      }, 1000);
+      // server truth-sync (current + other pages)
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 
@@ -241,10 +204,7 @@ export default function Product() {
           <FaSearch className="text-gray-400 mr-2" />
           <input
             value={query}
-            onChange={(e) => { 
-              setQuery(e.target.value); 
-              setPage(1); 
-            }}
+            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             type="text"
             placeholder="Search by name or SKU..."
             className="flex-1 outline-none text-sm text-gray-600 placeholder-gray-400"
@@ -261,15 +221,11 @@ export default function Product() {
             Add Product
           </button>
 
-          {/* Add modal */}
+          {/* Add modal: সফল হলে products invalidate */}
           <AddProduct
             isOpen={isModalOpen}
             isClose={() => setIsModalOpen(false)}
-            refetch={() => {
-              // প্রোডাক্ট যোগ করার পর সমস্ত প্রোডাক্ট কুয়েরি ইনভ্যালিডেট করুন
-              queryClient.invalidateQueries({ queryKey: ["products"] });
-              setPage(1); // প্রথম পেজে ফিরে যান
-            }}
+            refetch={() => queryClient.invalidateQueries({ queryKey: ["products"] })}
           />
         </div>
       </div>
@@ -309,9 +265,6 @@ export default function Product() {
                             src={img}
                             className="object-cover w-24 h-20 mx-auto rounded-md"
                             loading="lazy"
-                            onError={(e) => {
-                              e.target.src = "/placeholder.png";
-                            }}
                           />
                         </div>
                       </td>
@@ -330,16 +283,12 @@ export default function Product() {
 
                       <td className="p-5 whitespace-nowrap text-sm font-medium text-gray-900">
                         {product.updatedAt
-                          ? new Date(product.updatedAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })
+                          ? new Date(product.updatedAt).toISOString().slice(0, 10)
                           : "—"}
                       </td>
 
                       <td className="p-5 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ৳{product.price?.toLocaleString() || "0"}
+                        {product.price}
                       </td>
 
                       <td className="p-5 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -356,8 +305,7 @@ export default function Product() {
                           <button
                             onClick={() => handleEditClick(product)}
                             title="Update"
-                            disabled={deleteMutation.isPending}
-                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white border hover:bg-indigo-600 group disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white border hover:bg-indigo-600 group"
                           >
                             <FaEdit className="text-indigo-600 group-hover:text-white" />
                           </button>
@@ -365,8 +313,8 @@ export default function Product() {
                           <button
                             onClick={() => handleDelete(product._id)}
                             title="Delete"
-                            disabled={deleteMutation.isPending}
-                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white border hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            disabled={deleteMutation.isPending || deleting}
+                            className="w-9 h-9 flex items-center justify-center rounded-full bg-white border hover:bg-red-600 disabled:opacity-50 group"
                           >
                             <FaTrash className="text-red-600 group-hover:text-white" />
                           </button>
@@ -378,45 +326,34 @@ export default function Product() {
             }
           </tbody>
         </table>
-        
-        {/* খালি স্টেট দেখান */}
-        {!isFetching && items.length === 0 && (
-          <div className="text-center py-10">
-            <p className="text-gray-500 text-lg">No products found</p>
-          </div>
-        )}
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Modal (table-এর বাইরে, single instance) */}
       {isEditModalOpen && (
         <Suspense fallback={<Loader />}>
           <ProductEdit
             product={selectedProduct}
             isOpen={isEditModalOpen}
             isClose={handleCloseModal}
-            refetch={() => {
-              queryClient.invalidateQueries({ queryKey: ["products"] });
-            }}
+            refetch={() => queryClient.invalidateQueries({ queryKey: ["products"] })}
           />
         </Suspense>
       )}
 
       {/* Pagination */}
-      {totalPages > 0 && (
-        <ProductsPagination
-          page={page}
-          setPage={setPage}
-          limit={limit}
-          setLimit={setLimit}
-          total={total}
-          totalPages={totalPages}
-          isFetching={isFetching}
-          isPreviousData={isPreviousData}
-          PAGE_SIZE_OPTIONS={PAGE_SIZE_OPTIONS}
-        />
-      )}
+      <ProductsPagination
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        total={total}
+        totalPages={totalPages}
+        isFetching={isFetching}
+        isPreviousData={isPreviousData}
+        PAGE_SIZE_OPTIONS={PAGE_SIZE_OPTIONS}
+      />
 
-      <ToastContainer position="top-center" autoClose={2000} hideProgressBar />
+      {/* <ToastContainer position="top-center" autoClose={2000} hideProgressBar /> */}
     </div>
   );
 }
@@ -430,27 +367,13 @@ const Th = ({ children }) => (
 
 const SkeletonRow = () => (
   <tr className="animate-pulse">
-    <td className="py-4">
-      <div className="mx-auto w-24 h-20 bg-gray-200 rounded" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-4 bg-gray-200 rounded w-40" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-4 bg-gray-200 rounded w-20" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-4 bg-gray-200 rounded w-24" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-4 bg-gray-200 rounded w-16" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-6 bg-gray-200 rounded w-20" />
-    </td>
-    <td className="px-5 py-4">
-      <div className="h-8 bg-gray-200 rounded w-24" />
-    </td>
+    <td className="py-4"><div className="mx-auto w-24 h-20 bg-gray-200 rounded" /></td>
+    <td className="px-5 py-4"><div className="h-4 bg-gray-200 rounded w-40" /></td>
+    <td className="px-5 py-4"><div className="h-4 bg-gray-200 rounded w-20" /></td>
+    <td className="px-5 py-4"><div className="h-4 bg-gray-200 rounded w-24" /></td>
+    <td className="px-5 py-4"><div className="h-4 bg-gray-200 rounded w-16" /></td>
+    <td className="px-5 py-4"><div className="h-6 bg-gray-200 rounded w-20" /></td>
+    <td className="px-5 py-4"><div className="h-8 bg-gray-200 rounded w-24" /></td>
   </tr>
 );
 
@@ -472,14 +395,6 @@ function ProductsPagination({
 
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages && !isFetching) {
-      setPage(newPage);
-      // পৃষ্ঠা পরিবর্তনের সময় স্ক্রোল টপে নিয়ে যান
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
 
   return (
     <div className="mt-4">
@@ -504,12 +419,8 @@ function ProductsPagination({
             <span className="hidden sm:inline">Rows:</span>
             <select
               value={limit}
-              onChange={(e) => { 
-                setLimit(Number(e.target.value)); 
-                setPage(1); 
-              }}
-              disabled={isFetching}
-              className="bg-transparent outline-none text-gray-900 disabled:opacity-50"
+              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              className="bg-transparent outline-none text-gray-900"
             >
               {PAGE_SIZE_OPTIONS.map(n => (
                 <option key={n} value={n}>{n}</option>
@@ -523,8 +434,8 @@ function ProductsPagination({
             aria-label="Pagination"
           >
             <button
-              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition-colors"
-              onClick={() => handlePageChange(1)}
+              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+              onClick={() => setPage(1)}
               disabled={!canPrev || isFetching}
               aria-label="First page"
               title="First"
@@ -532,8 +443,8 @@ function ProductsPagination({
               <FaAngleDoubleLeft />
             </button>
             <button
-              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition-colors"
-              onClick={() => handlePageChange(page - 1)}
+              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+              onClick={() => setPage(p => clamp(p - 1, 1, totalPages))}
               disabled={!canPrev || isFetching}
               aria-label="Previous page"
               title="Previous"
@@ -549,14 +460,14 @@ function ProductsPagination({
                 ) : (
                   <button
                     key={p}
-                    onClick={() => handlePageChange(p)}
+                    onClick={() => setPage(p)}
                     disabled={isFetching}
                     aria-current={p === page ? "page" : undefined}
-                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors
+                    className={`px-3 py-1.5 rounded-lg text-sm transition
                       ${p === page
-                        ? "bg-blue-600 text-white shadow cursor-default"
+                        ? "bg-blue-600 text-white shadow"
                         : "hover:bg-gray-100 text-gray-700"
-                      } disabled:opacity-50`}
+                      }`}
                   >
                     {p}
                   </button>
@@ -565,8 +476,8 @@ function ProductsPagination({
             </div>
 
             <button
-              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition-colors"
-              onClick={() => handlePageChange(page + 1)}
+              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+              onClick={() => setPage(p => clamp(p + 1, 1, totalPages))}
               disabled={!canNext || isFetching || isPreviousData}
               aria-label="Next page"
               title="Next"
@@ -574,8 +485,8 @@ function ProductsPagination({
               <FaChevronRight />
             </button>
             <button
-              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40 transition-colors"
-              onClick={() => handlePageChange(totalPages)}
+              className="px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+              onClick={() => setPage(totalPages)}
               disabled={!canNext || isFetching}
               aria-label="Last page"
               title="Last"
@@ -585,42 +496,24 @@ function ProductsPagination({
           </nav>
 
           {/* Go to page */}
-          {totalPages > 1 && (
-            <form
-              className="hidden md:flex items-center gap-2 bg-white border rounded-xl px-3 py-1.5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const input = formData.get('targetPage');
-                const pageNum = parseInt(input, 10);
-                
-                if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
-                  handlePageChange(pageNum);
-                }
-                
-                // ইনপুট ফিল্ড রিসেট করুন
-                e.currentTarget.reset();
-              }}
-            >
-              <span className="text-sm text-gray-600">Go to</span>
-              <input
-                name="targetPage"
-                type="number"
-                min={1}
-                max={totalPages}
-                placeholder={page}
-                className="w-16 text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isFetching}
-              />
-              <button
-                type="submit"
-                className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
-                disabled={isFetching}
-              >
-                Go
-              </button>
-            </form>
-          )}
+          <form
+            className="hidden md:flex items-center gap-2 bg-white border rounded-xl px-3 py-1.5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const n = Number(e.currentTarget.elements.targetPage.value);
+              if (!Number.isNaN(n)) setPage(clamp(n, 1, totalPages));
+            }}
+          >
+            <span className="text-sm text-gray-600">Go to</span>
+            <input
+              name="targetPage"
+              type="number"
+              min={1}
+              max={totalPages}
+              defaultValue={page}
+              className="w-16 text-sm border rounded-lg px-2 py-1"
+            />
+          </form>
         </div>
       </div>
     </div>

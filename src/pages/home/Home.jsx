@@ -21,6 +21,7 @@ import DailyBestSeller from "./sections/dailyProducts/DailySellerSldier";
 import FourBanner from "../../components/FourBanner";
 import { Ban } from "lucide-react";
 import BannerSection from "../../components/BannerSection";
+import MarqueeRtl from "../../components/MarqueeRtl";
 
 const Home = () => {
   return (
@@ -48,10 +49,11 @@ const Home = () => {
 
    
 
-      <FeaturesBar />
-   
+      {/* <FeaturesBar /> */}
+  
        <FourBanner />
          <DailyBestSeller />
+          <MarqueeRtl />
       <div className="mt-7">
         <OurBrands />
       </div>

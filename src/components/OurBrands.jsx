@@ -132,12 +132,12 @@ export default function OurBrands() {
     <section className="mx-auto max-w-full px-2 md:px-6 py-10 sm:py-14 font-inter bg-white">
       {/* Heading */}
       <div className="mb-8 text-center sm:mb-10">
-        <div className="text-lg font-semibold tracking-[0.2em] text-sky-500">
+        <div className="text-lg font-semibold tracking-[0.2em] text-[#C82A5E]">
           POPULAR BRANDS
         </div>
         <h2 className="mt-3 text-2xl font-bold leading-tight text-slate-900 md:text-3xl">
           Let's Check Popular{" "}
-          <span className="bg-gradient-to-r from-sky-500 to-blue-500 bg-clip-text text-transparent">
+          <span className="bg-[#C82A5E] bg-clip-text text-transparent">
             Brands
           </span>
         </h2>

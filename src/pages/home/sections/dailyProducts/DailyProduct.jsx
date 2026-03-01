@@ -14,7 +14,7 @@ const DailyProduct = () => {
           <img className='h-full content-normal' src="https://i.ibb.co.com/9ZrhyB8/White-Minimal-Summer-Sale-Discount-Clothes-Instagram-Story-291-x-402-px-1.png" alt="" />
         </div>
 
-        {/* <DailyBestSeller/> */}
+        <DailyBestSeller/>
       </div>
     </div>
   )

@@ -7,7 +7,6 @@ const FEATURE_ITEMS = [
   { text: "100% SATISFACTION GUARANTEE", icon: Award, color: "text-amber-400" },
   { text: "EXTENDED WARRANTY", icon: Shield, color: "text-violet-400" },
   { text: "EASY 30-DAY RETURNS", icon: RefreshCw, color: "text-rose-400" },
-  { text: "PREMIUM QUALITY FABRICS", icon: Sparkles, color: "text-cyan-400" },
 ];
 
 export default function PremiumMarquee() {

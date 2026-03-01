@@ -1,269 +1,298 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import useLoading from "../../../../hooks/useLoading";
 import "./DailyProduct.css";
 
-// ✅ Step 1: Tailwind breakpoints অনুযায়ী function
 const getCardsToShow = (width) => {
-  if (width >= 1536) return 6; // 2xl
-  if (width >= 1280) return 5; // xl
-  if (width >= 1024) return 4; // lg
-  if (width >= 640) return 3; // sm & md
-  return 2; // mobile
+  if (width >= 1536) return 4;
+  if (width >= 1280) return 4;
+  if (width >= 1024) return 3;
+  if (width >= 640) return 2;
+  return 1;
 };
 
 const DailyBestSeller = () => {
-  const [products, setProducts] = useState([]);
   const [bestSellProducts, setBestSellProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { isLoading, showLoader, hideLoader } = useLoading();
 
-  // ✅ Step 2: Initial cardsToShow with screen width
   const [cardsToShow, setCardsToShow] = useState(
     getCardsToShow(window.innerWidth)
   );
+  const [activeTab, setActiveTab] = useState("featured");
 
-  // ✅ Step 3: Update cardsToShow when screen resizes
   useEffect(() => {
-    const handleResize = () => {
-      setCardsToShow(getCardsToShow(window.innerWidth));
-    };
-
+    const handleResize = () => setCardsToShow(getCardsToShow(window.innerWidth));
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchBestSellProducts = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_APP_SERVER_URL}api/products`
+          `${import.meta.env.VITE_APP_SERVER_URL}api/categories/best-sell`
         );
-        setProducts(response.data);
-
-        const bestSell = response.data.filter(
-          (product) => product.categoryName === "Best sell"
-        );
-        setBestSellProducts(bestSell);
+        setBestSellProducts(response.data || []);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching best sell products:", error);
       }
     };
-
-    fetchProducts();
+    fetchBestSellProducts();
   }, []);
 
+  const tabbedProducts = useMemo(() => {
+    const arr = [...bestSellProducts];
+
+    if (activeTab === "new") {
+      return arr.sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
+    }
+    if (activeTab === "popular") {
+      return arr.sort(
+        (a, b) =>
+          (b.ratingAvg || b.ratings || 0) - (a.ratingAvg || a.ratings || 0)
+      );
+    }
+    return arr;
+  }, [bestSellProducts, activeTab]);
+
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => {
-      const nextIndex = prevIndex + cardsToShow;
-      // যদি আর পরের গ্রুপ না থাকে, তাহলে আগানো যাবে না
-      if (nextIndex >= bestSellProducts.length) return prevIndex;
-      return nextIndex;
+    setCurrentIndex((prev) => {
+      const next = prev + cardsToShow;
+      if (next >= tabbedProducts.length) return prev;
+      return next;
     });
   };
 
   const handlePrevious = () => {
-    setCurrentIndex((prevIndex) => {
-      const prevIndexCalc = prevIndex - cardsToShow;
-      // যদি আগের গ্রুপ না থাকে, তাহলে আগানো যাবে না
-      if (prevIndexCalc < 0) return prevIndex;
-      return prevIndexCalc;
+    setCurrentIndex((prev) => {
+      const next = prev - cardsToShow;
+      if (next < 0) return prev;
+      return next;
     });
   };
 
+  const canPrev = currentIndex > 0;
+  const canNext = currentIndex + cardsToShow < tabbedProducts.length;
+
   return (
-    <div className="py-2 md:py-7 mx-3">
-      <h2 className="font-bold font-quicksand text-[26px] -tracking-tight leading-[24px] md:leading-[40px] text-[#253D4E] lg:mt-0 mt-5 lg:text-left text-center">
-        Groceries
-      </h2>
-      {/* Decorative line with icon */}
-      <div className="flex items-center justify-start mt-0 ml-1">
-        <span className="w-10 h-[2px] bg-indigo-500 rounded-full"></span>
-        {/* Shopping-related icon in circle */}
-        <div className="flex items-center justify-center w-7 h-7 mx-2 bg-indigo-100 rounded-full shadow-md border border-indigo-300">
-          <svg
-            className="w-4 h-4 text-indigo-500 "
-            fill="currentColor"
-            viewBox="0 0 24 24"
+    // ✅ overflow fix here
+    <section className="py-6 overflow-x-hidden">
+      {/* Header row */}
+      <div className="mx-3 flex items-center justify-between gap-3">
+        <h2 className="text-3xl font-extrabold text-[#253D4E]">
+          Daily Best Sells
+        </h2>
+
+        <div className="hidden sm:flex items-center gap-5 text-sm">
+          <button
+            onClick={() => setActiveTab("featured")}
+            className={`${
+              activeTab === "featured"
+                ? "text-green-600 font-semibold"
+                : "text-gray-500"
+            } hover:text-green-600`}
           >
-            <path d="M6 6h15l-1.5 9h-13zM6 6L4 3H0v2h2l3 13h12v-2H6z" />{" "}
-            {/* simple cart icon */}
-          </svg>
+            Featured
+          </button>
+          <button
+            onClick={() => setActiveTab("popular")}
+            className={`${
+              activeTab === "popular"
+                ? "text-green-600 font-semibold"
+                : "text-gray-500"
+            } hover:text-green-600`}
+          >
+            Popular
+          </button>
+          <button
+            onClick={() => setActiveTab("new")}
+            className={`${
+              activeTab === "new"
+                ? "text-green-600 font-semibold"
+                : "text-gray-500"
+            } hover:text-green-600`}
+          >
+            New added
+          </button>
         </div>
-        <span className="w-10 h-[2px] bg-indigo-500 rounded-full"></span>
       </div>
 
-      <div className=" gap-5 mt-5">
-        {/* <div className="hidden lg:block w-1/3">
-          <img
-            className="w-full h-auto object-cover rounded-lg"
-            src="https://i.ibb.co.com/9ZrhyB8/White-Minimal-Summer-Sale-Discount-Clothes-Instagram-Story-291-x-402-px-1.png"
-            alt="Sale"
-          />
-        </div> */}
+      {/* Body */}
+      <div className="mx-3 mt-6 flex gap-6">
+        {/* Left banner */}
+        <div className="hidden lg:block w-[280px] flex-shrink-0">
+          <div className="relative bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl overflow-hidden h-full shadow-lg">
+            <div className="absolute top-4 left-4 text-white">
+              <span className="bg-yellow-400 text-red-600 px-3 py-1 rounded-full text-sm font-bold">
+                Save 35%
+              </span>
+              <h3 className="text-4xl font-bold mt-4 leading-tight">
+                Best <br /> sale
+              </h3>
+              <p className="text-lg mt-2">Bring nature</p>
+              <p className="text-lg">into your</p>
+              <p className="text-lg">home</p>
+              <button className="mt-6 bg-white text-orange-500 px-6 py-2 rounded-full font-semibold hover:bg-orange-50 transition">
+                Shop Now →
+              </button>
+            </div>
+            <div className="absolute bottom-0 right-0 opacity-20">
+              <svg
+                className="w-48 h-48 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+              </svg>
+            </div>
+          </div>
+        </div>
 
-        <div className="relative w-full">
+        {/* Right carousel area */}
+        {/* ✅ extra safety overflow hidden */}
+        <div className="relative flex-1 overflow-x-hidden">
+          {/* Left Arrow */}
           <button
             onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className={`absolute z-10 -left-4 sm:-left-5 md:-left-2 top-1/2 transform -translate-y-1/2 
-      p-3 rounded-full shadow-md flex justify-center items-center
-      ${
-        currentIndex === 0
-          ? "bg-gray-300 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600 text-white transition-all"
-      }`}
+            disabled={!canPrev}
+            // ✅ -left-3 removed -> left-2
+            className={`absolute z-10 left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full flex items-center justify-center shadow
+              ${
+                canPrev
+                  ? "bg-white hover:bg-gray-50"
+                  : "bg-gray-200 cursor-not-allowed"
+              }`}
+            aria-label="Previous"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            ‹
           </button>
 
-          {/* Carousel Items */}
-          <div className="flex gap-2 md:gap-4 scrollbar-hide scroll-smooth">
-            {bestSellProducts
+          {/* Cards row */}
+          <div className="flex gap-5">
+            {tabbedProducts
               .slice(currentIndex, currentIndex + cardsToShow)
-              .map((product) => (
-                <Link
-                  key={product._id}
-                  to={`/product-details/${product._id}`}
-                  className="flex-shrink-0 w-[48%] sm:w-[31%] md:w-[23%] xl:w-[19%] 2xl:w-[15.5%] pb-4 bg-white border hover:border-purple-400 rounded-xl shadow-md transition-all duration-300"
-                >
-                  <div>
-                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white text-xs font-medium px-5 py-1.5 rounded-tl-xl rounded-br-2xl">
-                      Top
-                    </span>
-                  </div>
+              .map((p) => {
+                const price = Number(p.price || 0);
 
-                  <div className="px-3 py-1">
-                    <div className="flex justify-center mb-2">
-                      <img
-                        src={product.productImage}
-                        alt={product.productName}
-                        className="w-full h-48 sm:h-44 md:h-40 object-cover rounded-md"
-                      />
-                    </div>
-                    <p className="text-gray-500 text-xs font-sans">
-                      {product.category}
-                    </p>
-                    <h2 className="text-[15px] font-semibold text-gray-800 mb-2">
-                      {product.productName}
-                    </h2>
+                const img =
+                  Array.isArray(p.productImage) && p.productImage.length
+                    ? p.productImage[0]
+                    : p.productImage || p.image || "";
 
-                    <div className="flex items-center mb-2">
-                      {[...Array(4)].map((_, i) => (
-                        <span key={i} className="text-yellow-500">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                            />
-                          </svg>
-                        </span>
-                      ))}
-                      <span className="text-gray-300">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-2 w-2"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                const badgeText = p.discount ? `Save ${p.discount}%` : "Bestsale";
+
+                const sold = Number(p.sold || 90);
+                const total = Number(p.total || 120);
+                const pct =
+                  total > 0
+                    ? Math.min(100, Math.round((sold / total) * 100))
+                    : 0;
+
+                return (
+                  <div
+                    key={p._id}
+                    className="flex-shrink-0 w-full sm:w-[48%] lg:w-[32%] xl:w-[24%]"
+                  >
+                    <div className="bg-white border rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden h-full">
+                      <div className="px-4 pt-4">
+                        <span
+                          className={`inline-block text-xs font-semibold px-3 py-1 rounded-full
+                          ${
+                            p.discount
+                              ? "bg-pink-500 text-white"
+                              : "bg-orange-400 text-white"
+                          }`}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
-                          />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm ml-2">(5.0)</span>
-                    </div>
-
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="text-base font-bold text-gray-800">
-                        ৳ {product.price}
+                          {badgeText}
+                        </span>
                       </div>
-                      <button className="bg-gradient-to-r from-blue-500 to-blue-700 py-0.5 px-2.5 rounded-xl text-xs text-white">
-                        {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                      </button>
-                    </div>
 
-                    <div className="flex">
-                      <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-1 w-[50%] rounded-l-lg"></div>
-                      <div className="bg-gray-300 h-1 w-[50%] rounded-r-lg"></div>
-                    </div>
-
-                    <button className="mt-3 w-full flex justify-center items-center bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-0 py-2 rounded-md text-sm hover:scale-105 transition-transform duration-300">
-                      <svg
-                        className="h-3 w-3 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      <Link
+                        to={`/product-details/${p._id}`}
+                        className="block px-6 pt-4"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M3 3h18l-1.5 9H4.5L3 3zm6 13a2 2 0 114 0 2 2 0 01-4 0zm10 2a2 2 0 110-4 2 2 0 010 4z"
-                        />
-                      </svg>
-                      Order now
-                    </button>
+                        <div className="h-40 flex items-center justify-center">
+                          <img
+                            src={img}
+                            alt={p.productName}
+                            className="max-h-40 w-auto object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                      </Link>
+
+                      <div className="px-6 pb-5">
+                        <p className="text-xs text-gray-400 mt-3">Hodo Foods</p>
+
+                        <Link to={`/product-details/${p._id}`}>
+                          <h3 className="mt-1 text-sm font-bold text-[#253D4E] line-clamp-2">
+                            {p.productName}
+                          </h3>
+                        </Link>
+
+                        <div className="flex items-center gap-1 mt-2">
+                          <div className="text-yellow-400 text-sm">★★★★☆</div>
+                          <span className="text-xs text-gray-400 ml-1">
+                            (5.0)
+                          </span>
+                        </div>
+
+                        <div className="mt-3 flex items-end gap-2">
+                          <span className="text-green-600 font-extrabold">
+                            ৳ {price.toLocaleString()}
+                          </span>
+                          {p.regularPrice && (
+                            <span className="text-gray-400 text-xs line-through">
+                              ৳ {Number(p.regularPrice).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-3">
+                          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-green-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Sold: {sold}/{total}
+                          </p>
+                        </div>
+
+                        <Link
+                          to={`/product-details/${p._id}`}
+                          className="mt-4 inline-flex w-full items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 rounded-lg"
+                        >
+                          Add To Cart
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </Link>
-              ))}
+                );
+              })}
           </div>
 
-          {/* Next Button */}
+          {/* Right Arrow */}
           <button
             onClick={handleNext}
-            disabled={currentIndex + cardsToShow >= bestSellProducts.length}
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full shadow-md flex justify-center items-center
-      ${
-        currentIndex + cardsToShow >= bestSellProducts.length
-          ? "bg-gray-300 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600 text-white transition-all"
-      }`}
+            disabled={!canNext}
+            // ✅ -right-3 removed -> right-2
+            className={`absolute z-10 right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full flex items-center justify-center shadow
+              ${
+                canNext
+                  ? "bg-white hover:bg-gray-50"
+                  : "bg-gray-200 cursor-not-allowed"
+              }`}
+            aria-label="Next"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            ›
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

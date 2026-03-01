@@ -65,7 +65,7 @@ const ProductCategory = () => {
                 className="group text-center"
               >
                 {/* Circle Image */}
-                <div className="mx-auto w-24 h-24 rounded-full overflow-hidden bg-white shadow-sm border border-gray-200 
+                <div className="mx-auto w-24 h-24 rounded-full overflow-hidden bg-white shadow-sm border border-[#f890bc] 
                                 flex items-center justify-center transition 
                                 group-hover:shadow-md group-hover:scale-105 duration-300">
                   <img
