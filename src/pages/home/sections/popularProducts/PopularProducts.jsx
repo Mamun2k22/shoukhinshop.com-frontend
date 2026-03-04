@@ -58,8 +58,8 @@ const Rating = ({ value = 4.5 }) => {
 };
 
 const PopularProduct = () => {
-  const [visibleProducts, setVisibleProducts] = useState(20);
-  const showMoreProducts = () => setVisibleProducts((prev) => prev + 10);
+  const [visibleProducts, setVisibleProducts] = useState(48);
+  const showMoreProducts = () => setVisibleProducts((prev) => prev + 36);
 
   const { isLoading, showLoader, hideLoader } = useLoading();
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ const PopularProduct = () => {
     queryFn: async () => {
       showLoader();
       try {
-        const response = await fetch(`${BASE}api/products/public?limit=60`, {
+        const response = await fetch(`${BASE}api/products/public?limit=300`, {
           credentials: "include",
         });
         if (!response.ok) throw new Error("Network response was not ok");
