@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { toast, ToastContainer } from "react-toastify";
 import { FiX, FiUpload, FiTrash, FiCheckCircle } from "react-icons/fi";
 import "react-toastify/dist/ReactToastify.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { FaChevronDown } from "react-icons/fa";
 
 const MAX_IMAGES = 4;
@@ -15,10 +17,23 @@ const withBase = (path) => {
 
 const isNonEmpty = (v) => typeof v === "string" && v.trim().length > 0;
 
+
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline"],
+    [{ color: [] }, { background: [] }], // ✅ mark/highlight
+    [{ align: [] }], // ✅ align
+    [{ list: "ordered" }, { list: "bullet" }], // ✅ bullets
+    ["clean"],
+  ],
+};
+
 export default function AddProduct({ isOpen, isClose, refetch }) {
   // 🔥 Dropship system
   const [supplier, setSupplier] = useState("local");
   const [banggoProductId, setBanggoProductId] = useState("");
+  const [longDetailsHtml, setLongDetailsHtml] = useState("");
 
   // ✅ supplier local হলে banggo id clear
   useEffect(() => {
@@ -234,11 +249,12 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
       .filter(Boolean)
       .join("\n");
 
-    const longDetails = form.longDetails.value
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .join("\n");
+    const longDetails = String(longDetailsHtml || "").trim();
+if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
+      // .split(/\r?\n/)
+      // .map((l) => l.trim())
+      // .filter(Boolean)
+      // .join("\n");
 
     const categoryIds = selectedCategories.map((c) => c._id);
     const primaryCategory = selectedCategories[0] || null;
@@ -787,36 +803,37 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
               </div>
             </div>
 
-            {/* Details */}
-            <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Short Product Info</label>
-                <textarea
-                  name="details"
-                  rows="4"
-                  required
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief description (you can use multiple lines)"
-                />
-              </div>
+          {/* Details */}
+<div className="md:col-span-2 grid md:grid-cols-1 gap-4">
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      Short Product Info
+    </label>
+    <textarea
+      name="details"
+      rows="4"
+      required
+      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Brief description (you can use multiple lines)"
+    />
+  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Full Description{" "}
-                  <span className="text-xs text-gray-500">(one point per line)</span>
-                </label>
-                <textarea
-                  name="longDetails"
-                  rows="6"
-                  required
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={`Breast-shaped design promotes natural latch-on\nComfort petals provide softness and flexibility\nTwin anti-colic valves help minimize colic\nBPA-free silicone, easy to sterilize\nPack includes: 2 | Age: 0m+`}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Tip: Press Enter for a new bullet point.
-                </p>
-              </div>
-            </div>
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      Full Description
+    </label>
+
+ <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
+  <ReactQuill
+    theme="snow"
+    value={longDetailsHtml}
+    onChange={setLongDetailsHtml}
+    modules={quillModules}
+    placeholder="Write full description..."
+  />
+</div>
+  </div>
+</div>
 
             {/* Footer */}
             <div className="md:col-span-2 flex items-center justify-between pt-2">

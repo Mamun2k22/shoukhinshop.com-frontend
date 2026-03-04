@@ -258,3 +258,11 @@
   }
 }
 
+/* ReactQuill editor height */
+.quillWrap .ql-container {
+  min-height: 180px;   /* ✅ box height */
+}
+
+.quillWrap .ql-editor {
+  min-height: 180px;   /* ✅ typing area height */
+}

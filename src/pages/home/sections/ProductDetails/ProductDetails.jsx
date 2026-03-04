@@ -548,32 +548,25 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
   </div>
 
   <div className="p-4 sm:p-6 text-slate-700 text-sm sm:text-base leading-7">
-    {activeTab === "description" && (
-      <>
-        {longDetails ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
-            <h4 className="mb-3 text-sm font-semibold text-slate-900">
-              Product Description
-            </h4>
+  {activeTab === "description" && (
+  <>
+    {longDetails ? (
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h4 className="mb-3 text-sm font-semibold text-slate-900">
+          Product Description
+        </h4>
 
-            {/* ✅ bullet breakdown */}
-            <ul className="space-y-2">
-              {splitToBullets(longDetails).map((b, i) => (
-                <li
-                  key={i}
-                  className="flex gap-2 text-[15px] leading-6 text-slate-700"
-                >
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-slate-400" />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <p className="mb-4 text-slate-500">No description available.</p>
-        )}
-      </>
+        {/* ✅ Render HTML from ReactQuill */}
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: longDetails }}
+        />
+      </div>
+    ) : (
+      <p className="mb-4 text-slate-500">No description available.</p>
     )}
+  </>
+)}
 
     {activeTab === "additional" &&
       (specs.length ? (

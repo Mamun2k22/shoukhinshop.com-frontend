@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { FiX, FiUpload, FiTrash, FiCheckCircle } from "react-icons/fi";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const MAX_IMAGES = 4;
 
@@ -43,7 +45,7 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
   const [status, setStatus] = useState("available");
   const [stock, setStock] = useState("");
   const [details, setDetails] = useState("");
-  const [longDetails, setLongDetails] = useState("");
+ const [longDetailsHtml, setLongDetailsHtml] = useState("");
   const [imageUrl, setImageUrl] = useState([]);
 
   // size only
@@ -117,7 +119,7 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     setStatus(fullProduct.status ?? "available");
     setStock(fullProduct.stock ?? "");
     setDetails(fullProduct.details ?? "");
-    setLongDetails(fullProduct.longDetails ?? "");
+ setLongDetailsHtml(fullProduct.longDetails ?? "");
 
     setImageUrl(
       Array.isArray(fullProduct.productImage)
@@ -281,10 +283,11 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
 
     // text (preserve bullet lines)
     const detClean = cleanMultiline(details);
-    const longClean = cleanMultiline(longDetails);
+
 
     if (detClean) push("details", detClean, cleanMultiline(orig.details));
-    if (longClean) push("longDetails", longClean, cleanMultiline(orig.longDetails));
+  const longHtml = String(longDetailsHtml || "").trim();
+if (longHtml) push("longDetails", longHtml, String(orig.longDetails || "").trim());
 
     // arrays
     if (Array.isArray(imageUrl) && imageUrl.length > 0) {
@@ -337,7 +340,19 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
       setIsSaving(false);
     }
   };
-
+const quillModules = useMemo(
+  () => ({
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline"],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["clean"],
+    ],
+  }),
+  []
+);
   // ------------- loading/error overlays -------------
   if (fullLoading) {
     return (
@@ -624,21 +639,21 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Full description <span className="text-xs text-gray-500">(one point per line)</span>
-              </label>
-              <textarea
-                value={longDetails}
-                onChange={(e) => setLongDetails(e.target.value)}
-                rows={7}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={`One point per line:\nBPA-free silicone\nEasy to sterilize\nAnti-colic valve reduces gas\nPack includes: 2 | Age: 0m+`}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Tip: Press <b>Enter</b> to add a new bullet line.
-              </p>
-            </div>
+           <div>
+  <label className="block text-sm font-medium mb-1">
+    Full description
+  </label>
+
+  <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
+    <ReactQuill
+      theme="snow"
+      value={longDetailsHtml}
+      onChange={setLongDetailsHtml}
+      modules={quillModules}
+      placeholder="Write full description..."
+    />
+  </div>
+</div>
           </div>
 
           {/* Footer */}

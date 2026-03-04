@@ -47,5 +47,9 @@ module.exports = {
       'desktop': '1280px',
     },
   },
-  plugins: [require("tailgrids/plugin")],
+  // plugins: [require("tailgrids/plugin")], 
+    plugins: [
+    require("tailgrids/plugin"),
+    require("@tailwindcss/typography"),
+  ],
 }
