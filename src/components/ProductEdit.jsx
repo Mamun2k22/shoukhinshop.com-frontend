@@ -20,7 +20,12 @@ const cleanMultiline = (v) =>
     .filter(Boolean)
     .join("\n");
 
-export default function ProductEdit({ isOpen, isClose, product: productToEdit, refetch }) {
+export default function ProductEdit({
+  isOpen,
+  isClose,
+  product: productToEdit,
+  refetch,
+}) {
   if (!isOpen) return null;
 
   const id = productToEdit?._id;
@@ -45,11 +50,13 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
   const [status, setStatus] = useState("available");
   const [stock, setStock] = useState("");
   const [details, setDetails] = useState("");
- const [longDetailsHtml, setLongDetailsHtml] = useState("");
+  const [longDetailsHtml, setLongDetailsHtml] = useState("");
   const [imageUrl, setImageUrl] = useState([]);
 
   // size only
   const [sizeWeights, setSizeWeights] = useState([{ size: "" }]);
+  const [chestSizes, setChestSizes] = useState([{ size: "" }]);
+  const [waistSizes, setWaistSizes] = useState([{ size: "" }]);
   const [selectedColors, setSelectedColors] = useState([]);
 
   // keep original product for diffing
@@ -68,7 +75,9 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     queryKey: ["product-full", id],
     enabled: isOpen && !!id,
     queryFn: async () => {
-      const r = await fetch(withBase(`api/products/${id}`), { credentials: "include" });
+      const r = await fetch(withBase(`api/products/${id}`), {
+        credentials: "include",
+      });
       if (!r.ok) throw new Error("Failed to fetch product");
       return r.json();
     },
@@ -80,7 +89,9 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     queryKey: ["categories"],
     enabled: isOpen,
     queryFn: async () => {
-      const r = await fetch(withBase("api/categories"), { credentials: "include" });
+      const r = await fetch(withBase("api/categories"), {
+        credentials: "include",
+      });
       if (!r.ok) throw new Error("Failed to fetch categories");
       return r.json();
     },
@@ -111,7 +122,7 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     setCategoryName(
       typeof fullProduct.categoryName === "string"
         ? fullProduct.categoryName
-        : fullProduct.categoryName?.name || ""
+        : fullProduct.categoryName?.name || "",
     );
     setBrand(fullProduct.brand ?? "");
     setPrice(fullProduct.price ?? "");
@@ -119,25 +130,45 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     setStatus(fullProduct.status ?? "available");
     setStock(fullProduct.stock ?? "");
     setDetails(fullProduct.details ?? "");
- setLongDetailsHtml(fullProduct.longDetails ?? "");
+    setLongDetailsHtml(fullProduct.longDetails ?? "");
 
     setImageUrl(
       Array.isArray(fullProduct.productImage)
         ? fullProduct.productImage
         : fullProduct.productImage
-        ? [fullProduct.productImage]
-        : []
+          ? [fullProduct.productImage]
+          : [],
     );
 
-    const sw = Array.isArray(fullProduct.sizeWeight) ? fullProduct.sizeWeight : [];
-    setSizeWeights(sw.length ? sw.map((x) => ({ size: x?.size ?? "" })) : [{ size: "" }]);
+    const sw = Array.isArray(fullProduct.sizeWeight)
+      ? fullProduct.sizeWeight
+      : [];
+    setSizeWeights(
+      sw.length ? sw.map((x) => ({ size: x?.size ?? "" })) : [{ size: "" }],
+    );
+    const chest = Array.isArray(fullProduct.chest) ? fullProduct.chest : [];
+    setChestSizes(
+      chest.length
+        ? chest.map((x) => ({ size: x?.size ?? "" }))
+        : [{ size: "" }],
+    );
 
-    setSelectedColors(Array.isArray(fullProduct.color) ? fullProduct.color : []);
+    const waist = Array.isArray(fullProduct.waist) ? fullProduct.waist : [];
+    setWaistSizes(
+      waist.length
+        ? waist.map((x) => ({ size: x?.size ?? "" }))
+        : [{ size: "" }],
+    );
+    setSelectedColors(
+      Array.isArray(fullProduct.color) ? fullProduct.color : [],
+    );
 
     // supplier
     setSupplier(fullProduct?.supplier || "local");
     setBanggoProductId(
-      fullProduct?.banggoProductId != null ? String(fullProduct.banggoProductId) : ""
+      fullProduct?.banggoProductId != null
+        ? String(fullProduct.banggoProductId)
+        : "",
     );
   }, [fullProduct]);
 
@@ -149,10 +180,18 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
   // ✅ close dropdowns on outside click
   useEffect(() => {
     const onDocClick = (e) => {
-      if (isDropdownOpen && categoryRef.current && !categoryRef.current.contains(e.target)) {
+      if (
+        isDropdownOpen &&
+        categoryRef.current &&
+        !categoryRef.current.contains(e.target)
+      ) {
         setIsDropdownOpen(false);
       }
-      if (isColorOpen && colorRef.current && !colorRef.current.contains(e.target)) {
+      if (
+        isColorOpen &&
+        colorRef.current &&
+        !colorRef.current.contains(e.target)
+      ) {
         setIsColorOpen(false);
       }
     };
@@ -168,7 +207,7 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
 
   const toggleColor = (value) => {
     setSelectedColors((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
     );
   };
 
@@ -189,7 +228,7 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
 
         const r = await fetch(
           "https://api.imgbb.com/1/upload?key=31cbdc0f8e62b64424c515941a8bfd73",
-          { method: "POST", body: fd }
+          { method: "POST", body: fd },
         );
         const data = await r.json();
         if (data?.success) return data.data.url;
@@ -213,13 +252,28 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     }
   };
 
-  const removeImage = (idx) => setImageUrl((prev) => prev.filter((_, i) => i !== idx));
+  const removeImage = (idx) =>
+    setImageUrl((prev) => prev.filter((_, i) => i !== idx));
 
   // size rows
   const addRow = () => setSizeWeights((p) => [...p, { size: "" }]);
   const changeSize = (i, v) =>
-    setSizeWeights((p) => p.map((row, idx) => (idx === i ? { ...row, size: v } : row)));
+    setSizeWeights((p) =>
+      p.map((row, idx) => (idx === i ? { ...row, size: v } : row)),
+    );
+  const addChestRow = () => setChestSizes((p) => [...p, { size: "" }]);
 
+  const changeChest = (i, v) =>
+    setChestSizes((p) =>
+      p.map((row, idx) => (idx === i ? { ...row, size: v } : row)),
+    );
+
+  const addWaistRow = () => setWaistSizes((p) => [...p, { size: "" }]);
+
+  const changeWaist = (i, v) =>
+    setWaistSizes((p) =>
+      p.map((row, idx) => (idx === i ? { ...row, size: v } : row)),
+    );
   // helpers (numbers)
   const toNumOrUndef = (v) => {
     if (v === "" || v == null) return undefined;
@@ -279,15 +333,16 @@ export default function ProductEdit({ isOpen, isClose, product: productToEdit, r
     const s = toNumOrUndef(stock);
     if (s !== undefined) push("stock", s, orig.stock);
 
-    if ((status ?? "").trim()) push("status", status.trim(), orig.status ?? "available");
+    if ((status ?? "").trim())
+      push("status", status.trim(), orig.status ?? "available");
 
     // text (preserve bullet lines)
     const detClean = cleanMultiline(details);
 
-
     if (detClean) push("details", detClean, cleanMultiline(orig.details));
-  const longHtml = String(longDetailsHtml || "").trim();
-if (longHtml) push("longDetails", longHtml, String(orig.longDetails || "").trim());
+    const longHtml = String(longDetailsHtml || "").trim();
+    if (longHtml)
+      push("longDetails", longHtml, String(orig.longDetails || "").trim());
 
     // arrays
     if (Array.isArray(imageUrl) && imageUrl.length > 0) {
@@ -298,9 +353,24 @@ if (longHtml) push("longDetails", longHtml, String(orig.longDetails || "").trim(
       .map((row) => ({ size: (row.size ?? "").trim() }))
       .filter((row) => row.size);
 
-    if (filteredSW.length > 0) push("sizeWeight", filteredSW, orig.sizeWeight ?? []);
+    const filteredChest = (Array.isArray(chestSizes) ? chestSizes : [])
+      .map((row) => ({ size: (row.size ?? "").trim() }))
+      .filter((row) => row.size);
 
-    if (Array.isArray(selectedColors)) push("color", selectedColors, orig.color ?? []);
+    const filteredWaist = (Array.isArray(waistSizes) ? waistSizes : [])
+      .map((row) => ({ size: (row.size ?? "").trim() }))
+      .filter((row) => row.size);
+    // if (filteredChest.length > 0)
+    //   push("chest", filteredChest, orig.chest ?? []);
+    // if (filteredWaist.length > 0)
+    //   push("waist", filteredWaist, orig.waist ?? []);
+    // if (filteredSW.length > 0)
+    //   push("sizeWeight", filteredSW, orig.sizeWeight ?? []);
+push("sizeWeight", filteredSW, orig.sizeWeight ?? []);
+push("chest", filteredChest, orig.chest ?? []);
+push("waist", filteredWaist, orig.waist ?? []);
+    if (Array.isArray(selectedColors))
+      push("color", selectedColors, orig.color ?? []);
 
     return payload;
   };
@@ -340,19 +410,19 @@ if (longHtml) push("longDetails", longHtml, String(orig.longDetails || "").trim(
       setIsSaving(false);
     }
   };
-const quillModules = useMemo(
-  () => ({
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline"],
-      [{ color: [] }, { background: [] }],
-      [{ align: [] }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["clean"],
-    ],
-  }),
-  []
-);
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline"],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["clean"],
+      ],
+    }),
+    [],
+  );
   // ------------- loading/error overlays -------------
   if (fullLoading) {
     return (
@@ -364,7 +434,9 @@ const quillModules = useMemo(
   if (fullError) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-xl shadow p-6 text-sm">Failed to load product.</div>
+        <div className="bg-white rounded-xl shadow p-6 text-sm">
+          Failed to load product.
+        </div>
       </div>
     );
   }
@@ -397,7 +469,9 @@ const quillModules = useMemo(
             {/* Supplier */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1">Supplier</label>
+                <label className="block text-sm font-medium mb-1">
+                  Supplier
+                </label>
                 <select
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
@@ -409,7 +483,9 @@ const quillModules = useMemo(
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Banggomart Product ID</label>
+                <label className="block text-sm font-medium mb-1">
+                  Banggomart Product ID
+                </label>
                 <input
                   value={banggoProductId}
                   onChange={(e) => setBanggoProductId(e.target.value)}
@@ -422,11 +498,17 @@ const quillModules = useMemo(
 
             <div>
               <label className="block text-sm font-medium mb-1">SKU</label>
-              <input value={sku} onChange={(e) => setSku(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+              <input
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                className="w-full px-3 py-1.5 border rounded-lg"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Product Name</label>
+              <label className="block text-sm font-medium mb-1">
+                Product Name
+              </label>
               <input
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
@@ -461,7 +543,9 @@ const quillModules = useMemo(
                       key={c._id}
                       onClick={() => handleCategorySelect(c)}
                       className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
-                        categoryName === c.name ? "bg-blue-50 text-blue-700" : ""
+                        categoryName === c.name
+                          ? "bg-blue-50 text-blue-700"
+                          : ""
                       }`}
                     >
                       {c.name}
@@ -473,16 +557,27 @@ const quillModules = useMemo(
 
             <div>
               <label className="block text-sm font-medium mb-1">Brand</label>
-              <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+              <input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                className="w-full px-3 py-1.5 border rounded-lg"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Price</label>
-                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-full px-3 py-1.5 border rounded-lg"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Discount</label>
+                <label className="block text-sm font-medium mb-1">
+                  Discount
+                </label>
                 <input
                   type="number"
                   value={discount}
@@ -495,14 +590,25 @@ const quillModules = useMemo(
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full px-3 py-1.5 border rounded-lg"
+                >
                   <option value="available">Available</option>
                   <option value="out_of_stock">Out of Stock</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Quantity</label>
-                <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" />
+                <label className="block text-sm font-medium mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  className="w-full px-3 py-1.5 border rounded-lg"
+                />
               </div>
             </div>
           </div>
@@ -512,7 +618,8 @@ const quillModules = useMemo(
             {/* Images */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Product Images <span className="text-gray-500">(max {MAX_IMAGES})</span>
+                Product Images{" "}
+                <span className="text-gray-500">(max {MAX_IMAGES})</span>
               </label>
 
               <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition">
@@ -529,13 +636,19 @@ const quillModules = useMemo(
                 />
               </label>
 
-              {isUploading && <p className="text-xs text-gray-500 mt-1">Uploading…</p>}
+              {isUploading && (
+                <p className="text-xs text-gray-500 mt-1">Uploading…</p>
+              )}
 
               {!!imageUrl.length && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                   {imageUrl.map((url, idx) => (
                     <div key={idx} className="relative group">
-                      <img src={url} alt="" className="w-full h-28 object-cover rounded-lg" />
+                      <img
+                        src={url}
+                        alt=""
+                        className="w-full h-28 object-cover rounded-lg"
+                      />
                       <button
                         type="button"
                         onClick={() => removeImage(idx)}
@@ -554,7 +667,11 @@ const quillModules = useMemo(
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium">Sizes</label>
-                <button type="button" onClick={addRow} className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700">
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700"
+                >
                   + Add Row
                 </button>
               </div>
@@ -572,7 +689,54 @@ const quillModules = useMemo(
                 ))}
               </div>
             </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium">Chest</label>
+                <button
+                  type="button"
+                  onClick={addChestRow}
+                  className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700"
+                >
+                  + Add Row
+                </button>
+              </div>
 
+              <div className="space-y-2">
+                {chestSizes.map((row, i) => (
+                  <input
+                    key={i}
+                    value={row.size}
+                    onChange={(e) => changeChest(i, e.target.value)}
+                    placeholder="Chest (36, 38, 40)"
+                    className="w-full px-3 py-1.5 border rounded-lg"
+                  />
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium">Waist</label>
+                <button
+                  type="button"
+                  onClick={addWaistRow}
+                  className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700"
+                >
+                  + Add Row
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {waistSizes.map((row, i) => (
+                  <input
+                    key={i}
+                    value={row.size}
+                    onChange={(e) => changeWaist(i, e.target.value)}
+                    placeholder="Waist (28, 30, 32)"
+                    className="w-full px-3 py-1.5 border rounded-lg"
+                  />
+                ))}
+              </div>
+            </div>
             {/* Colors */}
             <div className="relative" ref={colorRef}>
               <label className="block text-sm font-medium mb-1">Colors</label>
@@ -589,7 +753,10 @@ const quillModules = useMemo(
                         className="inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs bg-gray-100"
                       >
                         {!/^#/.test(c) && <span>{c}</span>}
-                        <span className="w-3 h-3 rounded-full border" style={{ background: c }} />
+                        <span
+                          className="w-3 h-3 rounded-full border"
+                          style={{ background: c }}
+                        />
                       </span>
                     ))}
                   </div>
@@ -625,10 +792,13 @@ const quillModules = useMemo(
           </div>
 
           {/* Details */}
-          <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
+          <div className="md:col-span-2 grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Brief description <span className="text-xs text-gray-500">(optional bullets)</span>
+                Brief description{" "}
+                <span className="text-xs text-gray-500">
+                  (optional bullets)
+                </span>
               </label>
               <textarea
                 value={details}
@@ -639,26 +809,30 @@ const quillModules = useMemo(
               />
             </div>
 
-           <div>
-  <label className="block text-sm font-medium mb-1">
-    Full description
-  </label>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Full description
+              </label>
 
-  <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
-    <ReactQuill
-      theme="snow"
-      value={longDetailsHtml}
-      onChange={setLongDetailsHtml}
-      modules={quillModules}
-      placeholder="Write full description..."
-    />
-  </div>
-</div>
+              <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
+                <ReactQuill
+                  theme="snow"
+                  value={longDetailsHtml}
+                  onChange={setLongDetailsHtml}
+                  modules={quillModules}
+                  placeholder="Write full description..."
+                />
+              </div>
+            </div>
           </div>
 
           {/* Footer */}
           <div className="md:col-span-2 flex items-center justify-between pt-2">
-            <button type="button" onClick={isClose} className="px-4 py-2 rounded-lg border hover:bg-gray-50">
+            <button
+              type="button"
+              onClick={isClose}
+              className="px-4 py-2 rounded-lg border hover:bg-gray-50"
+            >
               Close
             </button>
             <button

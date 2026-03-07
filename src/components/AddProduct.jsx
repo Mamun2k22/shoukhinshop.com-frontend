@@ -48,6 +48,8 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
 
   // 🔥 now only sizes
   const [sizeWeights, setSizeWeights] = useState([{ size: "" }]);
+    const [chestSizes, setChestSizes] = useState([{ size: "" }]);
+  const [waistSizes, setWaistSizes] = useState([{ size: "" }]);
 
   const [selectedColors, setSelectedColors] = useState([]);
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
@@ -221,7 +223,27 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
       return copy;
     });
   };
+  const handleChestChange = (index, value) => {
+    setChestSizes((prev) => {
+      const copy = [...prev];
+      copy[index].size = value;
+      return copy;
+    });
+  };
 
+  const handleAddChestRow = () =>
+    setChestSizes((prev) => [...prev, { size: "" }]);
+
+  const handleWaistChange = (index, value) => {
+    setWaistSizes((prev) => {
+      const copy = [...prev];
+      copy[index].size = value;
+      return copy;
+    });
+  };
+
+  const handleAddWaistRow = () =>
+    setWaistSizes((prev) => [...prev, { size: "" }]);
   const handleAddSizeRow = () =>
     setSizeWeights((prev) => [...prev, { size: "" }]);
 
@@ -284,6 +306,14 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
       .map((sw) => ({ size: String(sw.size || "").trim() }))
       .filter((sw) => sw.size);
 
+       const chestArray = chestSizes
+      .map((item) => ({ size: String(item.size || "").trim() }))
+      .filter((item) => item.size);
+
+    const waistArray = waistSizes
+      .map((item) => ({ size: String(item.size || "").trim() }))
+      .filter((item) => item.size);
+
     const delivery = {
       type: deliveryType,
       area:
@@ -311,6 +341,8 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
       stock,
       sku,
       sizeWeight: sizeWeightArray,
+       chest: chestArray,
+      waist: waistArray,
       color: selectedColors,
 
       details,
@@ -351,9 +383,11 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
       if (typeof refetch === "function") refetch();
 
       form.reset();
-      setSelectedCategories([]);
+            setSelectedCategories([]);
       setSelectedColors([]);
       setSizeWeights([{ size: "" }]);
+      setChestSizes([{ size: "" }]);
+      setWaistSizes([{ size: "" }]);
       setImageUrl([]);
 
       setDeliveryType("cash_on_delivery");
@@ -745,7 +779,61 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                   ))}
                 </div>
               </div>
+              {/* Chest */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">Chest</label>
+                  <button
+                    type="button"
+                    onClick={handleAddChestRow}
+                    className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  >
+                    + Add Row
+                  </button>
+                </div>
 
+                <div className="space-y-2">
+                  {chestSizes.map((item, i) => (
+                    <div key={i} className="grid grid-cols-1 gap-2">
+                      <input
+                        type="text"
+                        className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Chest (e.g. 36, 38, 40)"
+                        value={item.size}
+                        onChange={(e) => handleChestChange(i, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+                            {/* Waist */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">Waist</label>
+                  <button
+                    type="button"
+                    onClick={handleAddWaistRow}
+                    className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  >
+                    + Add Row
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {waistSizes.map((item, i) => (
+                    <div key={i} className="grid grid-cols-1 gap-2">
+                      <input
+                        type="text"
+                        className="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Waist (e.g. 28, 30, 32)"
+                        value={item.size}
+                        onChange={(e) => handleWaistChange(i, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
               {/* Colors */}
               <div className="relative">
                 <label className="block text-sm font-medium mb-1">Colors</label>

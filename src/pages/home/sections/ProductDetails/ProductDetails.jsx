@@ -26,11 +26,12 @@ export default function ProductDetails() {
   const [activeTab, setActiveTab] = useState("description");
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedChest, setSelectedChest] = useState(null);
+  const [selectedWaist, setSelectedWaist] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
   const qc = useQueryClient();
-const API = import.meta.env.VITE_APP_SERVER_URL;
-
+  const API = import.meta.env.VITE_APP_SERVER_URL;
 
   const product = useLoaderData();
   const navigate = useNavigate();
@@ -54,6 +55,8 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
     productImage = [],
     sizeWeight = [],
     color = [],
+    chest = [],
+    waist = [],
   } = product || {};
 
   useEffect(() => window.scrollTo(0, 0), []);
@@ -63,23 +66,23 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
   }, [product?._id]);
 
   useEffect(() => {
-  if (!_id) return;
+    if (!_id) return;
 
-  // ✅ Reviews আগেই load হয়ে যাবে
-  qc.prefetchQuery({
-    queryKey: ["reviews", _id],
-    queryFn: async () => {
-      const res = await axios.get(`${API}api/reviews/product/${_id}`);
-      return res.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-}, [_id, qc]);
+    // ✅ Reviews আগেই load হয়ে যাবে
+    qc.prefetchQuery({
+      queryKey: ["reviews", _id],
+      queryFn: async () => {
+        const res = await axios.get(`${API}api/reviews/product/${_id}`);
+        return res.data;
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [_id, qc]);
 
   /* ---------- derived ---------- */
   const finalPrice = useMemo(
     () => Math.max(0, Number(price) - Number(discount || 0)),
-    [price, discount]
+    [price, discount],
   );
 
   const sizes = useMemo(
@@ -87,9 +90,23 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
       Array.isArray(sizeWeight)
         ? sizeWeight.filter((x) => x?.size).map((x) => x.size)
         : [],
-    [sizeWeight]
+    [sizeWeight],
+  );
+  const chestSizes = useMemo(
+    () =>
+      Array.isArray(chest)
+        ? chest.filter((x) => x?.size).map((x) => x.size)
+        : [],
+    [chest]
   );
 
+  const waistSizes = useMemo(
+    () =>
+      Array.isArray(waist)
+        ? waist.filter((x) => x?.size).map((x) => x.size)
+        : [],
+    [waist]
+  );
   const specs = useMemo(() => {
     const rows = [];
     if (brand) rows.push(["Brand", brand]);
@@ -99,6 +116,8 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
       rows.push(["Stock", stock > 0 ? `${stock} pcs` : "Out of stock"]);
     if (status) rows.push(["Status", status.replace(/_/g, " ")]);
     if (sizes.length) rows.push(["Available Sizes", sizes.join(", ")]);
+        if (chestSizes.length) rows.push(["Chest", chestSizes.join(", ")]);
+    if (waistSizes.length) rows.push(["Waist", waistSizes.join(", ")]);
     if (Array.isArray(color) && color.length) {
       rows.push([
         "Colors",
@@ -115,14 +134,14 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
       ]);
     }
     return rows;
-  }, [brand, sku, categoryName, stock, status, sizes, color]);
+  }, [brand, sku, categoryName, stock, status, sizes, chestSizes, waistSizes, color]);
 
   /* ---------- add to cart ---------- */
   const { mutate: addToCart } = useMutation({
     mutationFn: async (payload) => {
       const res = await axios.post(
         `${import.meta.env.VITE_APP_SERVER_URL}api/cart`,
-        payload
+        payload,
       );
       return res.data;
     },
@@ -138,13 +157,21 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
       toast.error("Failed to add product to cart. Please try again."),
   });
 
-  const ensureSelections = () => {
+    const ensureSelections = () => {
     if (sizes.length > 0 && !selectedSize) {
-      toast.error("Please select a size");
+      toast.error("দয়া করে সাইজ নির্বাচন করুন");
+      return false;
+    }
+    if (chestSizes.length > 0 && !selectedChest) {
+      toast.error("দয়া করে বুকের মাপ নির্বাচন করুন");
+      return false;
+    }
+    if (waistSizes.length > 0 && !selectedWaist) {
+      toast.error("দয়া করে কোমরের মাপ নির্বাচন করুন");
       return false;
     }
     if (color.length > 0 && !selectedColor) {
-      toast.error("Please select a color");
+      toast.error("দয়া করে রং নির্বাচন করুন");
       return false;
     }
     return true;
@@ -166,6 +193,8 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
       productId: _id,
       quantity,
       selectedSize,
+      selectedChest,
+      selectedWaist,
       selectedColor,
     });
   };
@@ -188,6 +217,8 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
           productId: _id,
           quantity,
           selectedSize,
+          selectedChest,
+          selectedWaist,
           selectedColor,
           price: finalPrice,
           productImage,
@@ -326,7 +357,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                           <FaStar key={i} />
                         ) : (
                           <FaRegStar key={i} />
-                        )
+                        ),
                       )}
                     </div>
                     <span className="text-slate-600 text-sm">
@@ -402,7 +433,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                   {Array.isArray(color) && color.length > 0 && (
                     <div>
                       <p className="text-sm font-semibold text-slate-800">
-                        Select Color
+                        রং নির্বাচন করুন
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2.5">
                         {color.map((c, i) => {
@@ -431,7 +462,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                   {sizes.length > 0 && (
                     <div>
                       <p className="text-sm font-semibold text-slate-800">
-                        Select Size
+                        সাইজ নির্বাচন করুন
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {sizes.map((sz) => {
@@ -455,7 +486,60 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                       </div>
                     </div>
                   )}
-
+                  {chestSizes.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        বুকের মাপ নির্বাচন করুন
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {chestSizes.map((sz) => {
+                          const active = selectedChest === sz;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => setSelectedChest(sz)}
+                              className={`px-4 py-2 rounded-xl text-sm font-semibold border transition
+                                ${
+                                  active
+                                    ? "bg-slate-900 text-white border-slate-900"
+                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                                    {waistSizes.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        কোমরের মাপ নির্বাচন করুন
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {waistSizes.map((sz) => {
+                          const active = selectedWaist === sz;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => setSelectedWaist(sz)}
+                              className={`px-4 py-2 rounded-xl text-sm font-semibold border transition
+                                ${
+                                  active
+                                    ? "bg-slate-900 text-white border-slate-900"
+                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   {/* Quantity */}
                   <div>
                     <p className="text-sm font-semibold text-slate-800">
@@ -475,7 +559,7 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                         value={quantity}
                         onChange={(e) =>
                           setQuantity(
-                            Math.max(1, parseInt(e.target.value) || 1)
+                            Math.max(1, parseInt(e.target.value) || 1),
                           )
                         }
                         className="w-16 h-11 text-center outline-none border-x border-slate-200 text-slate-900 font-semibold"
@@ -515,84 +599,89 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
                 </div>
 
                 <p className="mt-4 text-xs text-slate-500 sm:hidden">
-                  Tip: Choose size/color before checkout.
+                  Tip: Choose required options before checkout.
                 </p>
               </div>
             </div>
           </div>
 
-    {/* Tabs */}
-<div className="mt-8 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-  <div className="flex flex-wrap gap-2 p-3 sm:p-4 border-b border-slate-100 bg-slate-50">
-    {[
-      { key: "description", label: "Description" },
-      { key: "additional", label: "Product Specifications" },
-      { key: "reviews", label: "Reviews" },
-    ].map((t) => {
-      const active = activeTab === t.key;
-      return (
-        <button
-          key={t.key}
-          onClick={() => setActiveTab(t.key)}
-          className={`px-4 py-2 rounded text-sm font-semibold transition
+          {/* Tabs */}
+          <div className="mt-8 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="flex flex-wrap gap-2 p-3 sm:p-4 border-b border-slate-100 bg-slate-50">
+              {[
+                { key: "description", label: "Description" },
+                { key: "additional", label: "Product Specifications" },
+                { key: "reviews", label: "Reviews" },
+              ].map((t) => {
+                const active = activeTab === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setActiveTab(t.key)}
+                    className={`px-4 py-2 rounded text-sm font-semibold transition
             ${
               active
                 ? "bg-slate-900 text-white"
                 : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
             }`}
-        >
-          {t.label}
-        </button>
-      );
-    })}
-  </div>
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
 
-  <div className="p-4 sm:p-6 text-slate-700 text-sm sm:text-base leading-7">
-  {activeTab === "description" && (
-  <>
-    {longDetails ? (
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h4 className="mb-3 text-sm font-semibold text-slate-900">
-          Product Description
-        </h4>
+            <div className="p-4 sm:p-6 text-slate-700 text-sm sm:text-base leading-7">
+              {activeTab === "description" && (
+                <>
+                  {longDetails ? (
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <h4 className="mb-3 text-sm font-semibold text-slate-900">
+                        Product Description
+                      </h4>
 
-        {/* ✅ Render HTML from ReactQuill */}
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: longDetails }}
-        />
-      </div>
-    ) : (
-      <p className="mb-4 text-slate-500">No description available.</p>
-    )}
-  </>
-)}
+                      {/* ✅ Render HTML from ReactQuill */}
+                      <div
+                        className="prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: longDetails }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="mb-4 text-slate-500">
+                      No description available.
+                    </p>
+                  )}
+                </>
+              )}
 
-    {activeTab === "additional" &&
-      (specs.length ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-[420px] w-full border border-slate-200 rounded-xl overflow-hidden">
-            <tbody>
-              {specs.map(([label, value], i) => (
-                <tr key={i} className="border-b last:border-0 border-slate-200">
-                  <th className="w-48 text-left bg-slate-50 px-3 py-3 font-semibold text-slate-700">
-                    {label}
-                  </th>
-                  <td className="px-3 py-3 text-slate-800">
-                    {Array.isArray(value) ? value : value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-slate-500">No additional information.</p>
-      ))}
+              {activeTab === "additional" &&
+                (specs.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[420px] w-full border border-slate-200 rounded-xl overflow-hidden">
+                      <tbody>
+                        {specs.map(([label, value], i) => (
+                          <tr
+                            key={i}
+                            className="border-b last:border-0 border-slate-200"
+                          >
+                            <th className="w-48 text-left bg-slate-50 px-3 py-3 font-semibold text-slate-700">
+                              {label}
+                            </th>
+                            <td className="px-3 py-3 text-slate-800">
+                              {Array.isArray(value) ? value : value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-slate-500">No additional information.</p>
+                ))}
 
-    {activeTab === "reviews" && <ProductReviews productId={_id} />}
-  </div>
-</div>
+              {activeTab === "reviews" && <ProductReviews productId={_id} />}
+            </div>
+          </div>
         </div>
 
         {/* Mobile sticky action bar */}
@@ -631,8 +720,6 @@ const API = import.meta.env.VITE_APP_SERVER_URL;
         <RelatedProduct categoryName={categoryName} excludeId={_id} />
         <ToastContainer />
       </div>
-
-
     </>
   );
 }
