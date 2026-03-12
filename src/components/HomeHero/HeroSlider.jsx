@@ -8,7 +8,7 @@ import "./HeroSection.css";
 const FALLBACK_RIGHT_BANNERS = [
   {
     id: "rb-15",
-    img: "https://nest-frontend-v6.vercel.app/assets/imgs/banner/banner-15.png",
+    img: "https://i.ibb.co.com/YBVm62VZ/gentle.jpg",
     to: "/shop",
     title: "Everyday Fresh & Clean",
     subtitle: "with Our Products",
@@ -16,7 +16,7 @@ const FALLBACK_RIGHT_BANNERS = [
   },
   {
     id: "rb-14",
-    img: "https://nest-frontend-v6.vercel.app/assets/imgs/banner/banner-14.png",
+    img: "https://i.ibb.co.com/5WwQ42PL/pacifier.jpg",
     to: "/shop",
     title: "The best Organic",
     subtitle: "Products Online",
@@ -271,20 +271,13 @@ const [catExpanded, setCatExpanded] = useState(false);
 
         {/* ================= RIGHT: 2 SMALL BANNERS (like screenshot) ================= */}
         <aside className="hidden lg:flex flex-col h-full">
-          <div className="flex flex-col gap-4 h-full">
+          <div className="flex flex-col gap-2 h-full">
             {(rightBanners || []).slice(0, 2).map((b, idx) => (
-              <Link key={b.id || idx} to={b.to} className="flex-1 flex items-stretch justify-between gap-3 rounded-xl p-5 border border-gray-200">
-                <div className="hero-side-text">
-                  <h4 className="hero-side-title">{b.title}</h4>
-                  {b.subtitle ? (
-                    <p className="hero-side-subtitle">{b.subtitle}</p>
-                  ) : null}
+              <Link key={b.id || idx} to={b.to} className="flex-1 flex items-stretch justify-between gap-1 rounded-xl p-0.5 border border-gray-200">
+        
 
-                  <span className="hero-side-btn">{b.cta || "Shop Now"} →</span>
-                </div>
-
-                <div className="hero-side-imgWrap">
-                  <img
+                <div>
+                  <img className="w-full"
                     src={b.img}
                     alt={b.title || `Right banner ${idx + 1}`}
                     loading="lazy"
