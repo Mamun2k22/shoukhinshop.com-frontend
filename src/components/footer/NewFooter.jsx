@@ -13,8 +13,8 @@ export default function Footer() {
   const { data } = useGeneralSettingsPublic();
 
   // fallback values (যদি API fail হয়)
-  const phone = data?.phone || "+88 01773444720";
-  const email = data?.email || "Info@shoukhinshoplifestyle.com";
+  const phone = data?.phone || "+88 01794338777";
+  const email = data?.email || "Info@shoukhinshop.com";
   const address =
     data?.address ||
     "EI Mercado,114, Begum Rokeya Avenue, Mirpur-10, Dhaka, Bangladesh";
