@@ -81,6 +81,11 @@ const BannerList = () => {
       setPosting(false);
     }
   };
+const resolveImageUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url; // যদি full URL হয় (ImgBB)
+  return `${import.meta.env.VITE_APP_SERVER_URL}${url}`; // যদি local relative হয়
+};
 
   return (
     <div className="relative">
@@ -194,14 +199,13 @@ const BannerList = () => {
                     className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-lg"
                   >
                     <div className="relative h-52 w-full overflow-hidden">
-                      <img
-                        src={`${import.meta.env.VITE_APP_SERVER_URL}${
-                          banner.imageUrl
-                        }`}
-                        alt={banner.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                        loading="lazy"
-                      />
+                  <img
+  src={resolveImageUrl(banner.imageUrl)}
+  alt={banner.title}
+  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+  loading="lazy"
+/>
+
 
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
 
