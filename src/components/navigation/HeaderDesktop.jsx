@@ -271,7 +271,7 @@ const HeaderDesktop = ({
             {/* RIGHT: cart + user */}
             <div className="flex items-center gap-5 text-black min-w-[180px] justify-end">
               <Link
-                to="/dashboard/cart"
+                to="/cart"
                 aria-label="Cart"
                 className="flex items-center gap-2 relative"
               >

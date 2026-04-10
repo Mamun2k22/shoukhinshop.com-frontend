@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../hooks/userContext";
 import districts from "../data/districts";
+import { getGuestId } from "../hooks/guest";
 
 import OrderSummaryPanel from "../components/OrderSummaryPanel";
 import PaymentDetailsForm from "../components/PaymentDetailsForm";
@@ -133,7 +134,7 @@ const Buynow = () => {
           subtotal: subTotal,
           shipping: shippingBase,
           items: itemsPayload,
-          userId: user?.id,
+          userId: user?.id || null,
           district: selectedDistrict,
           shippingOption: districtZone === "inside" ? "inside" : "outside",
         }),
@@ -169,77 +170,113 @@ const Buynow = () => {
   };
 
   // ======= Submit Order =======
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!selectedDistrict) {
-      toast.error("Please select a district.", { position: "top-center" });
-      return;
-    }
-    if (!fullAddress) {
-      toast.error("Please provide a full address.", { position: "top-center" });
-      return;
-    }
-    if (!buynowItems.length) {
-      toast.error("No product found.", { position: "top-center" });
-      return;
-    }
+  const formData = new FormData(e.target);
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const mobile = formData.get("mobile");
 
-    const orderData = {
-      userId: user?.id,
-      cartItems: buynowItems.map((item) => ({
-        productId: item.productId,
-        quantity: Number(item.quantity) || 1,
-        price: Number(item.price) || 0,
-        selectedSize: item.selectedSize || null,
-        selectedWeight: item.selectedWeight || null,
-        selectedColor: item.selectedColor || null,
-      })),
-      district: selectedDistrict,
-      shippingOption: districtZone === "inside" ? "inside" : "outside",
-      paymentMethod: "Cash on Delivery",
-      shippingCost: shippingAfterDiscount,
-      totalCost: totalPrice,
-      pricing: {
-        subtotal: subTotal,
-        couponDiscount,
-        shippingBase,
-        shippingDiscount,
-        subtotalAfterDiscount,
-      },
-      coupon: appliedCoupon ? { code: appliedCoupon.code, id: appliedCoupon._id || null } : null,
-      customer: {
-        name: user?.name || "",
-        email: user?.email || "",
-        mobile: user?.mobile || "",
-      },
-      address: fullAddress,
-    };
+  if (!selectedDistrict) {
+    toast.error("Please select a district.", { position: "top-center" });
+    return;
+  }
 
-    try {
-      setSubmitting(true);
-      const response = await fetch(`${API_BASE}/api/order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
+  if (!fullAddress) {
+    toast.error("Please provide a full address.", { position: "top-center" });
+    return;
+  }
+
+  if (!buynowItems.length) {
+    toast.error("No product found.", { position: "top-center" });
+    return;
+  }
+
+  if (!mobile) {
+    toast.error("Phone number is required", { position: "top-center" });
+    return;
+  }
+
+  const guestId = getGuestId();
+
+  const orderData = {
+    userId: user?.id || null,
+    guestId: !user ? guestId : null,
+    cartItems: buynowItems.map((item) => ({
+      productId: item.productId,
+      quantity: Number(item.quantity) || 1,
+      price: Number(item.price) || 0,
+      selectedSize: item.selectedSize || null,
+      selectedWeight: item.selectedWeight || null,
+      selectedColor: item.selectedColor || null,
+      selectedChest: item.selectedChest || null,
+      selectedWaist: item.selectedWaist || null,
+    })),
+    district: selectedDistrict,
+    shippingOption: districtZone === "inside" ? "inside" : "outside",
+    paymentMethod: "Cash on Delivery",
+    shippingCost: shippingAfterDiscount,
+    totalCost: totalPrice,
+    pricing: {
+      subtotal: subTotal,
+      couponDiscount,
+      shippingBase,
+      shippingDiscount,
+      subtotalAfterDiscount,
+    },
+    coupon: appliedCoupon
+      ? { code: appliedCoupon.code, id: appliedCoupon._id || null }
+      : null,
+    customer: {
+      name: name || user?.name || "Guest User",
+      email: email || user?.email || "",
+      mobile: mobile || user?.mobile || "",
+    },
+    address: fullAddress,
+  };
+
+  try {
+    setSubmitting(true);
+
+    const response = await fetch(`${API_BASE}/api/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+
+    if (response.ok) {
+      const data = await response.json().catch(() => ({}));
+
+      toast.success("Order placed successfully!", {
+        position: "top-center",
       });
 
-      if (response.ok) {
-        toast.success("Order placed successfully!", { position: "top-center" });
+      if (user) {
         navigate("/dashboard/order");
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(
-          "There was an issue placing the order: " + (errorData.message || "Please try again."),
-          { position: "top-center" }
-        );
+        navigate("/order-success", {
+          state: {
+            order: data?.order || null,
+          },
+        });
       }
-    } catch (error) {
-      toast.error("Network error. Please try again.", { position: "top-center" });
-    } finally {
-      setSubmitting(false);
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      toast.error(
+        "There was an issue placing the order: " +
+          (errorData.message || "Please try again."),
+        { position: "top-center" }
+      );
     }
-  };
+  } catch (error) {
+    toast.error("Network error. Please try again.", {
+      position: "top-center",
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (!buynowItems.length) {
     return <p className="p-6">No product details provided. Please try again.</p>;

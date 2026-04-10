@@ -1,23 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "./userContext";
-import axios from "axios"; // Import axios directly
+import axios from "axios";
+import { getGuestId } from "./guest";
 
 const useCart = () => {
-    const { user } = useUser();
+  const { user } = useUser();
+  const guestId = getGuestId();
+  const API = import.meta.env.VITE_APP_SERVER_URL;
 
-    const { refetch, data: cart = [] } = useQuery({
-        queryKey: ['cart', user?.id],  // Ensure that this only triggers if user?.id exists
-        queryFn: async () => {
-            if (!user?.id) {
-                throw new Error("User is not authenticated");
-            }
-            const res = await axios.get(`${import.meta.env.VITE_APP_SERVER_URL}api/cart?id=${user.id}`);  // Use axios directly
-            return res.data.cartItems;  // Make sure backend sends { cartItems: [...] }
-        },
-        enabled: !!user?.id,  // Only enable the query if user.id exists
-    });
+  const identifier = user?.id || guestId;
 
-    return [cart, refetch];
-}
+  const { refetch, data: cart = [] } = useQuery({
+    queryKey: ["cart", identifier],
+    queryFn: async () => {
+      const query = user?.id
+        ? `userId=${user.id}`
+        : `guestId=${guestId}`;
+
+      const res = await axios.get(`${API}api/cart?${query}`);
+      return res.data?.cartItems || [];
+    },
+    enabled: !!identifier,
+  });
+
+  return [cart, refetch];
+};
 
 export default useCart;

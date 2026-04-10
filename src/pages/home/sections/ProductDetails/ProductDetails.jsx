@@ -16,6 +16,7 @@ import DealsOffer from "../../../../components/DealsOffer";
 import { addRecentlyViewed } from "../../../../utils/recentlyViewed";
 import ProductReviews from "../../../../components/reviews/ProductReviews";
 import { splitToBullets } from "../../../../utils/splitToBullets";
+import { getGuestId } from "../../../../hooks/guest";
 
 /* ---------- helpers ---------- */
 const money = (n) => `৳ ${Number(n || 0).toLocaleString()}`;
@@ -38,6 +39,7 @@ export default function ProductDetails() {
   const [, refetchCart] = useCart();
   const { user } = useUser();
   const userId = user?.id;
+  const guestId = getGuestId();
 
   const {
     _id,
@@ -177,56 +179,42 @@ export default function ProductDetails() {
     return true;
   };
 
-  const handleAddToCart = () => {
-    if (!ensureSelections()) return;
-    if (!userId) {
-      Swal.fire({
-        icon: "warning",
-        title: "Please Login",
-        text: "You need to log in to add products to your cart.",
-        confirmButtonText: "Go to Login",
-      }).then((r) => r.isConfirmed && navigate("/login"));
-      return;
-    }
-    addToCart({
-      userId,
-      productId: _id,
-      quantity,
-      selectedSize,
-      selectedChest,
-      selectedWaist,
-      selectedColor,
-    });
-  };
+const handleAddToCart = () => {
+  if (!ensureSelections()) return;
 
-  const handleBuyNowClick = () => {
-    if (!ensureSelections()) return;
-    if (!userId) {
-      Swal.fire({
-        icon: "warning",
-        title: "Please Login",
-        text: "You need to log in to add products to your cart.",
-        confirmButtonText: "Go to Login",
-      }).then((r) => r.isConfirmed && navigate("/login"));
-      return;
-    }
-    navigate("/buy-checkout", {
-      state: {
-        productDetails: {
-          userId,
-          productId: _id,
-          quantity,
-          selectedSize,
-          selectedChest,
-          selectedWaist,
-          selectedColor,
-          price: finalPrice,
-          productImage,
-          productName,
-        },
+  addToCart({
+    userId: user?.id || null,
+    guestId: !user ? guestId : null,
+    productId: _id,
+    quantity,
+    selectedSize,
+    selectedChest,
+    selectedWaist,
+    selectedColor,
+  });
+};
+
+ const handleBuyNowClick = () => {
+  if (!ensureSelections()) return;
+
+  navigate("/buy-checkout", {
+    state: {
+      productDetails: {
+        userId: user?.id || null,
+        guestId: !user ? guestId : null,
+        productId: _id,
+        quantity,
+        selectedSize,
+        selectedChest,
+        selectedWaist,
+        selectedColor,
+        price: finalPrice,
+        productImage,
+        productName,
       },
-    });
-  };
+    },
+  });
+};
 
   /* ---------- slider ---------- */
   const settings = {

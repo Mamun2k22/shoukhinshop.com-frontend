@@ -65,6 +65,7 @@ import HeaderSectionSettings from "../components/ui/HeaderSectionSettings";
 import AdminShippingSettings from "../components/ui/AdminShippingSettings";
 import GeneralSetting from "../components/ui/GeneralSetting";
 import ForgotPassword from "../pages/ForgotPassword";
+import OrderSuccess from "../pages/OrderSuccess";
 
 
 
@@ -91,6 +92,10 @@ export const router = createBrowserRouter([
         element: <ProductDetails />,
         loader: ({ params }) => fetch(withBase(`api/products/${params.id}`)),
       },
+      {
+  path: "/order-success",
+  element: <OrderSuccess />,
+},
 
    
            {
@@ -111,35 +116,13 @@ export const router = createBrowserRouter([
       // misc
       { path: "test", element: <Test /> },
       { path: "checkout", element: <Checkout /> },
+      { path: "cart", element: <Cart /> },
       { path: "buy-checkout", element: <Buynow /> },
       { path: "checkout2", element: <CheckoutTwo /> },
       { path: "create", element: <CreateProduct /> },
       { path: "producttwo", element: <Producttwo /> },
       { path: "/all-product", element: <AllProductsHeader /> },
-      {
-        path: "/womensub",
-        element: <WomenSubCategories />,
-      },
-      {
-        path: "/mensub",
-        element: <MenSubCategories />,
-      },
-      {
-        path: "/kidsub",
-        element: <KidsSubCategories />,
-      },
-      {
-        path: "/accessories",
-        element: <AccessoriesSubCategories />,
-      },
-      {
-        path: "/category-products",
-        element: <CategoryFilterProduct />,
-      },
-      {
-        path: "/shop-category",
-        element: <CarowselToCategories />,
-      },
+      
       
       // (optional) backward-compat: old URL -> redirect to dashboard route
       {
@@ -165,22 +148,8 @@ export const router = createBrowserRouter([
       },
 
       // ---- ADMIN ONLY ----
-      {
-        path: "seller",
-        element: (
-          <AdminRoute>
-            <AdminVerificationList />
-          </AdminRoute>
-        ),
-      },
-      {
-        path: "seller-approved", // 👈 NEW
-        element: (
-          <AdminRoute>
-            <AdminVerificationApproved />
-          </AdminRoute>
-        ),
-      },
+
+
       {
         path: "orders",
         element: (
