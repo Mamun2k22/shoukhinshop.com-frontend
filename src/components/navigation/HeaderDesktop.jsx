@@ -282,13 +282,13 @@ const HeaderDesktop = ({
                 </span>
               </Link>
 
-              <Link
+              {/* <Link
                 to={user ? "/dashboard/profile" : "/login"}
                 aria-label="Account"
                 className="h-9 w-9 rounded-full bg-white/20 border border-white/25 grid place-items-center hover:bg-white/30 transition"
               >
                 <FiUser className="h-5 w-5" />
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

@@ -188,7 +188,7 @@ function HeaderMobile({
             </button>
 
             <Link
-              to="/dashboard/cart"
+              to="/cart"
               aria-label="Cart"
               className={iconBtn + " relative"}
             >
@@ -201,7 +201,7 @@ function HeaderMobile({
             </Link>
 
             {/* Account button → direct navigate */}
-            <button
+            {/* <button
               type="button"
               onClick={onAccountClick}
               aria-label={user ? "Go to profile" : "Login"}
@@ -216,7 +216,7 @@ function HeaderMobile({
               ) : (
                 <FiUser className="text-gray-700 text-xl" />
               )}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

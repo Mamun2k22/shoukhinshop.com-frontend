@@ -125,7 +125,7 @@ const PaymentDetailsForm = ({
           </div>
         </div>
 
-        <label className="mt-4 mb-2 block text-sm font-medium">Email</label>
+        <label className="mt-4 mb-2 block text-sm font-medium">Email (optional)</label>
         <div className="relative">
           <input
             type="email"
