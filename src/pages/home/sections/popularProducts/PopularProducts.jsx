@@ -307,31 +307,32 @@ const PopularProduct = () => {
       </div>
 
       {/* Cart button (no navigation) */}
-      <button
-        disabled={isOutOfStock}
-        onClick={() => {
-          if (isOutOfStock) {
-            Swal.fire({
-              icon: "warning",
-              title: "Out of stock",
-              text: "This product is currently unavailable.",
-              timer: 1600,
-              showConfirmButton: false,
-            });
-            return;
-          }
-          handleAddToCart(product._id);
-        }}
-        className={`w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all
-          ${
-            isOutOfStock
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-[#F77426] text-white hover:scale-105 hover:bg-sky-600"
-          }`}
-        title="Add to cart"
-      >
-        <HiOutlineShoppingCart className="text-lg" />
-      </button>
+    <button
+  disabled={isOutOfStock}
+  onClick={() => {
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "warning",
+        title: "Out of stock",
+        text: "This product is currently unavailable.",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    navigate(`/product-details/${product._id}`);
+  }}
+  className={`w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all
+    ${
+      isOutOfStock
+        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-[#F77426] text-white hover:scale-105 hover:bg-sky-600"
+    }`}
+  title="View details"
+>
+  <HiOutlineShoppingCart className="text-lg" />
+</button>
     </div>
   </div>
 </div>
