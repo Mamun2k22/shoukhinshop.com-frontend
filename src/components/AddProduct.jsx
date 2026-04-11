@@ -1,11 +1,10 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast, ToastContainer } from "react-toastify";
 import { FiX, FiUpload, FiTrash, FiCheckCircle } from "react-icons/fi";
 import "react-toastify/dist/ReactToastify.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { FaChevronDown } from "react-icons/fa";
 
 const MAX_IMAGES = 4;
 
@@ -17,38 +16,30 @@ const withBase = (path) => {
 
 const isNonEmpty = (v) => typeof v === "string" && v.trim().length > 0;
 
-
 const quillModules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
     ["bold", "italic", "underline"],
-    [{ color: [] }, { background: [] }], // ✅ mark/highlight
-    [{ align: [] }], // ✅ align
-    [{ list: "ordered" }, { list: "bullet" }], // ✅ bullets
+    [{ color: [] }, { background: [] }],
+    [{ align: [] }],
+    [{ list: "ordered" }, { list: "bullet" }],
     ["clean"],
   ],
 };
 
 export default function AddProduct({ isOpen, isClose, refetch }) {
-  // 🔥 Dropship system
   const [supplier, setSupplier] = useState("local");
   const [banggoProductId, setBanggoProductId] = useState("");
   const [longDetailsHtml, setLongDetailsHtml] = useState("");
 
-  // ✅ supplier local হলে banggo id clear
-  useEffect(() => {
-    if (supplier !== "banggomart") setBanggoProductId("");
-  }, [supplier]);
-
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedParentCategory, setSelectedParentCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
   const [imageUrl, setImageUrl] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // 🔥 now only sizes
   const [sizeWeights, setSizeWeights] = useState([{ size: "" }]);
-    const [chestSizes, setChestSizes] = useState([{ size: "" }]);
+  const [chestSizes, setChestSizes] = useState([{ size: "" }]);
   const [waistSizes, setWaistSizes] = useState([{ size: "" }]);
 
   const [selectedColors, setSelectedColors] = useState([]);
@@ -56,14 +47,20 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  // ✅ Delivery system
   const USE_FREE_DELIVERY_ZONES = true;
   const [deliveryType, setDeliveryType] = useState("cash_on_delivery");
   const [deliveryZone, setDeliveryZone] = useState("inside_dhaka");
 
-  const dropdownRef = useRef(null);
+  useEffect(() => {
+    if (supplier !== "banggomart") setBanggoProductId("");
+  }, [supplier]);
 
-  // ---------- Data fetching ----------
+  useEffect(() => {
+    if (deliveryType !== "free_delivery") {
+      setDeliveryZone("inside_dhaka");
+    }
+  }, [deliveryType]);
+
   const {
     data: categories = [],
     isLoading: categoriesLoading,
@@ -75,26 +72,6 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
         credentials: "include",
       });
       if (!r.ok) throw new Error("Failed to fetch categories");
-      return r.json();
-    },
-    enabled: isOpen,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
-
-  const {
-    data: subcategories = [],
-    isLoading: subcategoriesLoading,
-    error: subcategoriesError,
-  } = useQuery({
-    queryKey: ["subcategories"],
-    queryFn: async () => {
-      const r = await fetch(withBase("api/subcategories"), {
-        credentials: "include",
-      });
-      if (!r.ok) throw new Error("Failed to fetch subcategories");
       return r.json();
     },
     enabled: isOpen,
@@ -124,49 +101,26 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
     refetchOnReconnect: false,
   });
 
-  const safeCategories = useMemo(() => categories ?? [], [categories]);
+  const safeCategories = useMemo(() => {
+    if (!Array.isArray(categories)) return [];
+    return categories.filter((cat) => !cat.parent);
+  }, [categories]);
+
   const safeColors = useMemo(() => colorOptions ?? [], [colorOptions]);
 
-  // close category dropdown on outside click
-  useEffect(() => {
-    if (!isDropdownOpen) return;
-    const onDocClick = (e) => {
-      if (!dropdownRef.current) return;
-      if (!dropdownRef.current.contains(e.target)) setIsDropdownOpen(false);
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [isDropdownOpen]);
+  const subcategoryOptions = selectedParentCategory?.subcategories || [];
 
-  useEffect(() => {
-    if (deliveryType !== "free_delivery") setDeliveryZone("inside_dhaka");
-  }, [deliveryType]);
+  const parseNumber = (v, def = 0) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : def;
+  };
 
-  // ---------- UI handlers ----------
   const handleColorSelect = (colorName) => {
     setSelectedColors((prev) =>
       prev.includes(colorName)
         ? prev.filter((c) => c !== colorName)
         : [...prev, colorName]
     );
-  };
-
-  const handleCategorySelect = (category) => {
-    setSelectedCategories((prev) => {
-      const exists = prev.some((c) => c._id === category._id);
-      if (exists) return prev.filter((c) => c._id !== category._id);
-      return [...prev, category];
-    });
-  };
-
-  const handleDropdownToggle = (e) => {
-    e.stopPropagation();
-    setIsDropdownOpen((prev) => !prev);
-  };
-
-  const parseNumber = (v, def = 0) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : def;
   };
 
   const handleImageUpload = async (e) => {
@@ -213,8 +167,9 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
     }
   };
 
-  const removeImage = (idx) =>
+  const removeImage = (idx) => {
     setImageUrl((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleSizeChange = (index, value) => {
     setSizeWeights((prev) => {
@@ -223,6 +178,7 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
       return copy;
     });
   };
+
   const handleChestChange = (index, value) => {
     setChestSizes((prev) => {
       const copy = [...prev];
@@ -230,9 +186,6 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
       return copy;
     });
   };
-
-  const handleAddChestRow = () =>
-    setChestSizes((prev) => [...prev, { size: "" }]);
 
   const handleWaistChange = (index, value) => {
     setWaistSizes((prev) => {
@@ -242,12 +195,35 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
     });
   };
 
-  const handleAddWaistRow = () =>
-    setWaistSizes((prev) => [...prev, { size: "" }]);
-  const handleAddSizeRow = () =>
+  const handleAddSizeRow = () => {
     setSizeWeights((prev) => [...prev, { size: "" }]);
+  };
 
-  // ---------- Submit ----------
+  const handleAddChestRow = () => {
+    setChestSizes((prev) => [...prev, { size: "" }]);
+  };
+
+  const handleAddWaistRow = () => {
+    setWaistSizes((prev) => [...prev, { size: "" }]);
+  };
+
+  const resetFormState = (form) => {
+    form.reset();
+    setSelectedParentCategory(null);
+    setSelectedSubCategory(null);
+    setSelectedColors([]);
+    setSizeWeights([{ size: "" }]);
+    setChestSizes([{ size: "" }]);
+    setWaistSizes([{ size: "" }]);
+    setImageUrl([]);
+    setDeliveryType("cash_on_delivery");
+    setDeliveryZone("inside_dhaka");
+    setSupplier("local");
+    setBanggoProductId("");
+    setLongDetailsHtml("");
+    setIsOpenDropdown(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -255,16 +231,14 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
     const productName = form.productName.value.trim();
     const brand = form.brand.value.trim();
 
-    // ✅ prices
     const buyPrice = parseNumber(form.buyPrice.value, 0);
     const regularPrice = parseNumber(form.regularPrice.value, 0);
-    const price = parseNumber(form.price.value, 0); // sell price
+    const price = parseNumber(form.price.value, 0);
 
     const status = form.status.value;
     const stock = parseNumber(form.stock.value, 0);
     const sku = (form.sku?.value ?? "").trim();
 
-    // ✅ Clean text (preserve bullets with newline)
     const details = form.details.value
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -272,19 +246,17 @@ export default function AddProduct({ isOpen, isClose, refetch }) {
       .join("\n");
 
     const longDetails = String(longDetailsHtml || "").trim();
-if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
-      // .split(/\r?\n/)
-      // .map((l) => l.trim())
-      // .filter(Boolean)
-      // .join("\n");
 
-    const categoryIds = selectedCategories.map((c) => c._id);
-    const primaryCategory = selectedCategories[0] || null;
+    const categoryIds = selectedParentCategory
+      ? selectedSubCategory
+        ? [selectedParentCategory._id, selectedSubCategory._id]
+        : [selectedParentCategory._id]
+      : [];
 
-    // ✅ validations
+    const primaryCategory = selectedParentCategory || null;
+
     if (!isNonEmpty(productName)) return toast.warn("Product name is required");
-    if (!selectedCategories.length)
-      return toast.warn("Please select at least one category");
+    if (!selectedParentCategory) return toast.warn("Please select a category");
     if (!imageUrl.length) return toast.warn("Please upload at least 1 image");
 
     if (buyPrice < 0) return toast.warn("Buying price cannot be negative");
@@ -306,7 +278,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
       .map((sw) => ({ size: String(sw.size || "").trim() }))
       .filter((sw) => sw.size);
 
-       const chestArray = chestSizes
+    const chestArray = chestSizes
       .map((item) => ({ size: String(item.size || "").trim() }))
       .filter((item) => item.size);
 
@@ -330,24 +302,19 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
       categoryName: primaryCategory?.name || "",
       productImage: imageUrl,
       brand,
-
       buyPrice,
       regularPrice,
       price,
-
       delivery,
-
       status,
       stock,
       sku,
       sizeWeight: sizeWeightArray,
-       chest: chestArray,
+      chest: chestArray,
       waist: waistArray,
       color: selectedColors,
-
       details,
       longDetails,
-
       supplier,
       banggoProductId:
         supplier === "banggomart" ? Number(banggoProductId) : null,
@@ -381,20 +348,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
 
       toast.success("Product added successfully!");
       if (typeof refetch === "function") refetch();
-
-      form.reset();
-            setSelectedCategories([]);
-      setSelectedColors([]);
-      setSizeWeights([{ size: "" }]);
-      setChestSizes([{ size: "" }]);
-      setWaistSizes([{ size: "" }]);
-      setImageUrl([]);
-
-      setDeliveryType("cash_on_delivery");
-      setDeliveryZone("inside_dhaka");
-
-      setSupplier("local");
-      setBanggoProductId("");
+      resetFormState(form);
     } catch (err) {
       console.error(err);
       toast.error(err?.message || "Failed to add product.");
@@ -403,8 +357,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
     }
   };
 
-  // ---------- Loading / errors ----------
-  if (categoriesLoading || subcategoriesLoading || colorsLoading) {
+  if (categoriesLoading || colorsLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-xl shadow p-6 text-sm">Loading…</div>
@@ -412,20 +365,20 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
     );
   }
 
-  if (categoriesError)
+  if (categoriesError) {
     return <div>Error loading categories: {categoriesError.message}</div>;
-  if (subcategoriesError)
-    return <div>Error loading subcategories: {subcategoriesError.message}</div>;
-  if (colorError) return <div>Error loading colors: {colorError.message}</div>;
+  }
+
+  if (colorError) {
+    return <div>Error loading colors: {colorError.message}</div>;
+  }
 
   if (!isOpen) return null;
 
-  // ---------- UI ----------
   return (
     <div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-2xl shadow-xl w-[95%] max-w-4xl p-0 overflow-hidden max-h-[95vh] overflow-y-auto">
-          {/* Header */}
           <div className="px-5 py-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50">
@@ -437,16 +390,14 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
               onClick={isClose}
               className="p-2 rounded-full hover:bg-gray-100"
               aria-label="Close"
+              type="button"
             >
               <FiX />
             </button>
           </div>
 
-          {/* Body */}
           <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6 p-5">
-            {/* Left column */}
             <div className="space-y-4">
-              {/* Product Name */}
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Product Name
@@ -460,76 +411,56 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 />
               </div>
 
-              {/* Category */}
-              <div className="relative" ref={dropdownRef}>
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <button
-                  type="button"
-                  onClick={handleDropdownToggle}
-                  className="w-full inline-flex items-center justify-between px-3 py-2 rounded-lg border border-gray-300 bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <span
-                    className={`truncate ${
-                      selectedCategories.length ? "text-gray-900" : "text-gray-400"
-                    }`}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={selectedParentCategory?._id || ""}
+                    onChange={(e) => {
+                      const selected =
+                        safeCategories.find((cat) => cat._id === e.target.value) ||
+                        null;
+                      setSelectedParentCategory(selected);
+                      setSelectedSubCategory(null);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {selectedCategories.length
-                      ? selectedCategories.map((c) => c.name).join(", ")
-                      : "Select categories"}
-                  </span>
+                    <option value="">Select category</option>
+                    {safeCategories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  <FaChevronDown
-                    className={`ml-2 h-4 w-4 text-gray-500 transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border bg-white shadow-xl">
-                    <ul className="max-h-64 overflow-y-auto py-1">
-                      {safeCategories.map((cat) => (
-                        <React.Fragment key={cat._id}>
-                          <li>
-                            <button
-                              type="button"
-                              onClick={() => handleCategorySelect(cat)}
-                              className={`w-full px-3 py-2 text-sm font-semibold ${
-                                selectedCategories.some((c) => c._id === cat._id)
-                                  ? "bg-blue-50 text-blue-700"
-                                  : "text-gray-800"
-                              }`}
-                            >
-                              {cat.name}
-                            </button>
-                          </li>
-
-                          {subcategories
-                            .filter((s) => s.parentCategory?._id === cat._id)
-                            .map((sub) => (
-                              <li key={sub._id}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleCategorySelect(sub)}
-                                  className={`w-full px-5 py-2 text-sm ${
-                                    selectedCategories.some((c) => c._id === sub._id)
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "text-gray-600"
-                                  }`}
-                                >
-                                  {sub.name}
-                                </button>
-                              </li>
-                            ))}
-                        </React.Fragment>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Subcategory
+                  </label>
+                  <select
+                    value={selectedSubCategory?._id || ""}
+                    onChange={(e) => {
+                      const selected =
+                        subcategoryOptions.find((sub) => sub._id === e.target.value) ||
+                        null;
+                      setSelectedSubCategory(selected);
+                    }}
+                    disabled={!selectedParentCategory}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select subcategory</option>
+                    {subcategoryOptions.map((sub) => (
+                      <option key={sub._id} value={sub._id}>
+                        {sub.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Brand */}
               <div>
                 <label className="block text-sm font-medium mb-1">Brand</label>
                 <input
@@ -540,7 +471,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 />
               </div>
 
-              {/* Supplier */}
               <div>
                 <label className="block text-sm font-medium mb-1">Supplier</label>
                 <select
@@ -553,7 +483,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 </select>
               </div>
 
-              {/* Banggomart ID */}
               {supplier === "banggomart" && (
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -573,7 +502,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 </div>
               )}
 
-              {/* Prices */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -620,7 +548,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 </div>
               </div>
 
-              {/* Delivery */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium">Delivery</label>
 
@@ -666,7 +593,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 )}
               </div>
 
-              {/* Status, Stock, SKU */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Status</label>
@@ -704,9 +630,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
               </div>
             </div>
 
-            {/* Right column */}
             <div className="space-y-4">
-              {/* Upload */}
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Product Images <span className="text-gray-500">(max {MAX_IMAGES})</span>
@@ -752,7 +676,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 )}
               </div>
 
-              {/* Size */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium">Select Size</label>
@@ -779,7 +702,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                   ))}
                 </div>
               </div>
-              {/* Chest */}
+
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium">Chest</label>
@@ -807,7 +730,6 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                 </div>
               </div>
 
-                            {/* Waist */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium">Waist</label>
@@ -834,7 +756,7 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
                   ))}
                 </div>
               </div>
-              {/* Colors */}
+
               <div className="relative">
                 <label className="block text-sm font-medium mb-1">Colors</label>
                 <div
@@ -891,39 +813,37 @@ if (!isNonEmpty(longDetails)) return toast.warn("Additional info is required");
               </div>
             </div>
 
-          {/* Details */}
-<div className="md:col-span-2 grid md:grid-cols-1 gap-4">
-  <div>
-    <label className="block text-sm font-medium mb-1">
-      Short Product Info
-    </label>
-    <textarea
-      name="details"
-      rows="4"
-      required
-      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      placeholder="Brief description (you can use multiple lines)"
-    />
-  </div>
+            <div className="md:col-span-2 grid md:grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Short Product Info
+                </label>
+                <textarea
+                  name="details"
+                  rows="4"
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Brief description (you can use multiple lines)"
+                />
+              </div>
 
-  <div>
-    <label className="block text-sm font-medium mb-1">
-      Full Description
-    </label>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Full Description
+                </label>
 
- <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
-  <ReactQuill
-    theme="snow"
-    value={longDetailsHtml}
-    onChange={setLongDetailsHtml}
-    modules={quillModules}
-    placeholder="Write full description..."
-  />
-</div>
-  </div>
-</div>
+                <div className="rounded-lg overflow-hidden border border-gray-300 quillWrap">
+                  <ReactQuill
+                    theme="snow"
+                    value={longDetailsHtml}
+                    onChange={setLongDetailsHtml}
+                    modules={quillModules}
+                    placeholder="Write full description..."
+                  />
+                </div>
+              </div>
+            </div>
 
-            {/* Footer */}
             <div className="md:col-span-2 flex items-center justify-between pt-2">
               <button
                 type="button"

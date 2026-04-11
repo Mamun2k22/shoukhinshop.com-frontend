@@ -382,7 +382,7 @@ export default function Dashboard() {
       {/* Shell */}
       <div className="md:mx-4 mx-0 max-w-full px-2 md:px-3 lg:px-0 flex">
         {/* Sidebar (desktop) */}
-        <aside className="hidden md:flex w-[240px] shrink-0 pt-6 pb-10 mr-6">
+        <aside className="hidden md:flex w-[230px] shrink-0 pt-6 pb-10 mr-6">
           <div
             className="
               sticky top-16 w-full rounded-md border border-gray-200 bg-white/80 p-3 shadow-sm backdrop-blur

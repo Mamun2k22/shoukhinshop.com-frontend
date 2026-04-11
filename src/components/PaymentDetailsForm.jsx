@@ -71,7 +71,7 @@ const PaymentDetailsForm = ({
       </p>
 
       {/* coupon box */}
-      <div className="mt-4 rounded-lg border bg-white p-3">
+      {/* <div className="mt-4 rounded-lg border bg-white p-3">
         <label className="text-sm font-medium">Have a coupon?</label>
         <div className="mt-2 flex gap-2">
           <input
@@ -107,7 +107,7 @@ const PaymentDetailsForm = ({
             {shippingDiscount > 0 && <> — Shipping off TK {shippingDiscount}</>}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* contact & address */}
       <div>
@@ -125,7 +125,7 @@ const PaymentDetailsForm = ({
           </div>
         </div>
 
-        <label className="mt-4 mb-2 block text-sm font-medium">Email (optional)</label>
+        {/* <label className="mt-4 mb-2 block text-sm font-medium">Email (optional)</label>
         <div className="relative">
           <input
             type="email"
@@ -150,7 +150,7 @@ const PaymentDetailsForm = ({
               />
             </svg>
           </div>
-        </div>
+        </div> */}
 
         <label className="mt-4 mb-2 block text-sm font-medium">Phone No</label>
         <div className="relative">

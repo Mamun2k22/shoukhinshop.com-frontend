@@ -1,8 +1,6 @@
-// src/pages/CategoryDetails.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import MenSubCategories from "./MenSubCategories";
 
 /* --- tiny helpers ------------------------------------------------------- */
 const useClickOutside = (ref, onClose) => {
@@ -56,11 +54,87 @@ const sortProducts = (arr, how) => {
   }
 };
 
+/* --- subcategory tabs --------------------------------------------------- */
+function SubcategoryTabs({ parentCategory, activeSubSlug = "" }) {
+  if (!parentCategory) return null;
+
+  const subcategories = parentCategory?.subcategories || [];
+  const parentSlug = parentCategory?.slug || "";
+
+  if (!subcategories.length) return null;
+
+  return (
+    <div className="mb-6">
+      <div className="mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+          Browse Subcategories
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <Link
+          to={`/category/${parentSlug}`}
+          className={`group rounded-xl border overflow-hidden bg-white transition hover:shadow-md ${
+            !activeSubSlug ? "border-black ring-1 ring-black" : "border-gray-200"
+          }`}
+        >
+          <div className="w-full h-24 bg-gray-100 flex items-center justify-center">
+            <span className="text-sm font-semibold text-gray-700">All</span>
+          </div>
+          <div className="px-3 py-2 text-center">
+            <p
+              className={`text-sm font-medium ${
+                !activeSubSlug ? "text-black" : "text-gray-700"
+              }`}
+            >
+              All Products
+            </p>
+          </div>
+        </Link>
+
+        {subcategories.map((sub) => (
+          <Link
+            key={sub._id}
+            to={`/category/${parentSlug}/${sub.slug}`}
+            className={`group rounded-xl border overflow-hidden bg-white transition hover:shadow-md ${
+              activeSubSlug === sub.slug
+                ? "border-black ring-1 ring-black"
+                : "border-gray-200"
+            }`}
+          >
+            <div className="w-full h-24 bg-gray-100 overflow-hidden">
+              <img
+                src={sub.image}
+                alt={sub.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://via.placeholder.com/300x200?text=Subcategory";
+                }}
+              />
+            </div>
+
+            <div className="px-3 py-2 text-center">
+              <p
+                className={`text-sm font-medium truncate ${
+                  activeSubSlug === sub.slug ? "text-black" : "text-gray-700"
+                }`}
+              >
+                {sub.name}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* --- main page ---------------------------------------------------------- */
 export default function SectionCategoriDetails() {
-  const { slug } = useParams();
+  const { slug, subSlug } = useParams();
 
-  // dropdown open states (SIZE removed)
   const [openPrice, setOpenPrice] = useState(false);
   const [openSort, setOpenSort] = useState(false);
 
@@ -70,29 +144,55 @@ export default function SectionCategoriDetails() {
   useClickOutside(priceRef, () => setOpenPrice(false));
   useClickOutside(sortRef, () => setOpenSort(false));
 
-  // filters (SIZE removed)
   const [priceMin, setPriceMin] = useState(0);
   const [priceMax, setPriceMax] = useState(0);
   const [sortBy, setSortBy] = useState("dateNew");
 
-  // ✅ fetch category’s products from /api/categories/:slug
+  const baseUrl = import.meta.env.VITE_APP_SERVER_URL;
+
+  // categories for subcategory tabs
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await fetch(`${baseUrl}api/categories`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to load categories");
+      return res.json();
+    },
+  });
+
+  const activeCategory = useMemo(() => {
+    return Array.isArray(categories)
+      ? categories.find((cat) => cat.slug === slug)
+      : null;
+  }, [categories, slug]);
+
+  // products by category or subcategory
   const {
     data: products = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["productsByCategory", slug],
+    queryKey: ["productsByCategory", slug, subSlug],
     queryFn: async () => {
-      const url = `${import.meta.env.VITE_APP_SERVER_URL}api/categories/${encodeURIComponent(
-        slug || ""
-      )}`;
+      const url = subSlug
+        ? `${baseUrl}api/categories/${encodeURIComponent(
+            slug || ""
+          )}/${encodeURIComponent(subSlug || "")}`
+        : `${baseUrl}api/categories/${encodeURIComponent(slug || "")}`;
+
       const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load products");
       return res.json();
     },
+    enabled: !!slug,
   });
 
-  // derive price bounds (SIZE removed)
   const { minP, maxP } = useMemo(() => {
     const prices = [];
     for (const p of products) {
@@ -104,15 +204,16 @@ export default function SectionCategoriDetails() {
     return { minP, maxP };
   }, [products]);
 
-  // initialize price slider bounds
   useEffect(() => {
     if (products.length) {
       setPriceMin(minP);
       setPriceMax(maxP);
+    } else {
+      setPriceMin(0);
+      setPriceMax(0);
     }
   }, [products, minP, maxP]);
 
-  // apply filters (SIZE removed)
   const filtered = useMemo(() => {
     const inPrice = (p) => {
       const val = Number(p.price || 0);
@@ -122,36 +223,47 @@ export default function SectionCategoriDetails() {
     return sortProducts(products.filter((p) => inPrice(p)), sortBy);
   }, [products, priceMin, priceMax, sortBy]);
 
-  if (isLoading)
+  if (isLoading || categoriesLoading) {
     return (
       <section className="max-w-7xl mx-auto px-4 py-10">
         <p>Loading…</p>
       </section>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <section className="max-w-7xl mx-auto px-4 py-10">
         <p className="text-red-600">Failed to load products.</p>
       </section>
     );
+  }
+
+  if (categoriesError) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 py-10">
+        <p className="text-red-600">Failed to load categories.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white">
-      {/* <MenSubCategories /> */}
       <div className="max-w-full xl:px-8 mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Title */}
         <div className="mb-4">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
             {decodeURIComponent(slug || "Category")}
+            {subSlug ? ` / ${decodeURIComponent(subSlug)}` : ""}
           </h1>
         </div>
 
-        {/* Filter bar */}
+        <SubcategoryTabs
+          parentCategory={activeCategory}
+          activeSubSlug={subSlug || ""}
+        />
+
         <div className="flex items-center justify-between gap-3 pb-3 border-b">
-          {/* Left: PRICE (SIZE removed) */}
           <div className="flex items-center gap-3">
-            {/* PRICE */}
             <div className="relative" ref={priceRef}>
               <button
                 onClick={() => {
@@ -190,7 +302,6 @@ export default function SectionCategoriDetails() {
                     />
                   </div>
 
-                  {/* dual slider (two range inputs) */}
                   <div className="mt-3 px-1">
                     <div className="relative h-5">
                       <input
@@ -246,7 +357,6 @@ export default function SectionCategoriDetails() {
             </div>
           </div>
 
-          {/* Right: SORT */}
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => {
@@ -282,12 +392,10 @@ export default function SectionCategoriDetails() {
           </div>
         </div>
 
-        {/* Results count */}
         <div className="text-sm text-gray-600 mt-3 mb-4">
           Showing <span className="font-semibold">{filtered.length}</span> items
         </div>
 
-        {/* Product grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5 mt-2 md:mt-8">
           {filtered.map((p) => {
             const oldPrice = Number(p.price || 0);
@@ -330,7 +438,7 @@ export default function SectionCategoriDetails() {
                     <div className="absolute bottom-0 py-2 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-all duration-300 bg-black bg-opacity-80 text-center">
                       <Link
                         to={`/product-details/${p._id}`}
-                        className="w-full  text-white font-semibold  transition-colors duration-200"
+                        className="w-full text-white font-semibold transition-colors duration-200"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Add to Cart

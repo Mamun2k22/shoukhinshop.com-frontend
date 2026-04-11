@@ -21,7 +21,7 @@ import CheckoutTwo from "../pages/checkOut/CheckoutTwo";
 import Otp from "../components/Otp";
 import { AdminRoute } from "../hooks/useAdmin";
 import { Test } from "../components/Test";
-import Buynow from "../components/Buynow"
+import Buynow from "../components/Buynow";
 import ResetPassword from "../Auth/ResetPassword";
 import { UserRoute } from "../hooks/userRole";
 import { ShareRoute } from "../hooks/useShareRoute";
@@ -67,15 +67,13 @@ import GeneralSetting from "../components/ui/GeneralSetting";
 import ForgotPassword from "../pages/ForgotPassword";
 import OrderSuccess from "../pages/OrderSuccess";
 
-
-
 const withBase = (p) => {
   const base = import.meta.env.VITE_APP_SERVER_URL || "";
   return `${base.replace(/\/$/, "")}/${String(p).replace(/^\//, "")}`;
 };
 
 export const router = createBrowserRouter([
-   { path: "/admin-login", element: <AdminLoginPage /> },
+  { path: "/admin-login", element: <AdminLoginPage /> },
   {
     path: "/",
     element: <MainLayout />,
@@ -93,25 +91,28 @@ export const router = createBrowserRouter([
         loader: ({ params }) => fetch(withBase(`api/products/${params.id}`)),
       },
       {
-  path: "/order-success",
-  element: <OrderSuccess />,
-},
+        path: "/order-success",
+        element: <OrderSuccess />,
+      },
 
-   
-           {
+      {
         path: "category/:slug",
         element: <SectionCategoriDetails />,
       },
-   {
-        path: "category/:name",
-        element: <CategoryProduct />,
-        loader: ({ params }) => fetch(withBase(`api/category/${params.name}`)),
+      {
+        path: "category/:slug/:subSlug",
+        element: <SectionCategoriDetails />,
       },
+      //  {
+      //       path: "category/:name",
+      //       element: <CategoryProduct />,
+      //       loader: ({ params }) => fetch(withBase(`api/category/${params.name}`)),
+      //     },
       // auth
       { path: "login", element: <Signup /> },
       { path: "otp-verify", element: <Otp /> },
       // { path: "forget-password", element: <ForgotPassword /> },
-      
+
       { path: "/forgot-password", element: <ForgotPassword /> },
       // misc
       { path: "test", element: <Test /> },
@@ -122,13 +123,6 @@ export const router = createBrowserRouter([
       { path: "create", element: <CreateProduct /> },
       { path: "producttwo", element: <Producttwo /> },
       { path: "/all-product", element: <AllProductsHeader /> },
-      
-      
-      // (optional) backward-compat: old URL -> redirect to dashboard route
-      {
-        path: "seller/verification",
-        element: <Navigate to="/dashboard/verification" replace />,
-      },
     ],
   },
 
@@ -148,7 +142,6 @@ export const router = createBrowserRouter([
       },
 
       // ---- ADMIN ONLY ----
-
 
       {
         path: "orders",
@@ -282,7 +275,7 @@ export const router = createBrowserRouter([
         path: "setting-header",
         element: (
           <AdminRoute>
-            <HeaderSectionSettings/>
+            <HeaderSectionSettings />
           </AdminRoute>
         ),
       },
@@ -299,7 +292,7 @@ export const router = createBrowserRouter([
         path: "setting-shipping",
         element: (
           <AdminRoute>
-              <AdminShippingSettings />
+            <AdminShippingSettings />
           </AdminRoute>
         ),
       },
@@ -307,7 +300,7 @@ export const router = createBrowserRouter([
         path: "general-setting",
         element: (
           <AdminRoute>
-              <GeneralSetting />
+            <GeneralSetting />
           </AdminRoute>
         ),
       },
@@ -343,7 +336,6 @@ export const router = createBrowserRouter([
           </AdminRoute>
         ),
       },
- 
 
       // ---- USER ONLY ----
       {
@@ -401,7 +393,7 @@ export const router = createBrowserRouter([
         path: "wishlist",
         element: (
           <UserRoute>
-            <Wishlist/>
+            <Wishlist />
           </UserRoute>
         ),
       },

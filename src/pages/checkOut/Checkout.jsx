@@ -462,7 +462,7 @@ const BuyCheckout = () => {
               )}
             </div>
 
-            <div className="mt-2 rounded-lg border bg-white p-3">
+            {/* <div className="mt-2 rounded-lg border bg-white p-3">
               <label className="text-sm font-medium">Have a coupon?</label>
               <div className="mt-2 flex gap-2">
                 <input
@@ -500,7 +500,7 @@ const BuyCheckout = () => {
                   )}
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -525,7 +525,7 @@ const BuyCheckout = () => {
               </div>
             </div>
 
-            <label className="mt-4 mb-2 block text-sm font-medium">Email (optional)</label>
+            {/* <label className="mt-4 mb-2 block text-sm font-medium">Email (optional)</label>
             <div className="relative">
               <input
                 type="email"
@@ -537,7 +537,7 @@ const BuyCheckout = () => {
               <div className="pointer-events-none absolute inset-y-0 left-0 inline-flex items-center px-3">
                 ✉️
               </div>
-            </div>
+            </div> */}
 
             <label className="mt-4 mb-2 block text-sm font-medium">Phone No</label>
             <div className="relative">
